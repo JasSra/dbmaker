@@ -1,0 +1,49 @@
+.hero {
+  padding: 80px 24px;
+  background: linear-gradient(135deg, var(--hero-start) 0%, var(--hero-end) 100%);
+  color: var(--text-on-hero);
+  text-align: center;
+}
+
+.hero-content {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.hero h1 {
+  font-size: 44px;
+  margin-bottom: 12px;
+}
+
+.hero p { opacity: 0.9; margin-bottom: 24px; }
+
+.cta {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+}
+
+.secondary-link {
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+  padding: 40px 24px;
+}
+
+.feature {
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.feature mat-icon { font-size: 36px; height: 36px; width: 36px; color: var(--accent); }
+.feature h3 { margin: 12px 0 8px; }

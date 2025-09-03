@@ -1,0 +1,31 @@
+<section class="hero">
+  <div class="hero-content">
+    <h1>Spin up personal databases in seconds</h1>
+    <p>DbMaker gives every user isolated Redis and Postgres containers with smart ports, real-time monitoring, and zero ops.</p>
+    <div class="cta">
+      <button mat-raised-button color="primary" (click)="getStarted()">
+        <mat-icon>rocket_launch</mat-icon>
+        Get started
+      </button>
+      <a routerLink="/containers" class="secondary-link">Browse containers</a>
+    </div>
+  </div>
+</section>
+
+<section class="features">
+  <div class="feature">
+    <mat-icon>bolt</mat-icon>
+    <h3>Fast provisioning</h3>
+    <p>Templates for Redis and Postgres spin up ready-to-use instances in moments.</p>
+  </div>
+  <div class="feature">
+    <mat-icon>security</mat-icon>
+    <h3>Isolated & secure</h3>
+    <p>Per-user containers, smart port allocation, and subdomain routing keep things isolated.</p>
+  </div>
+  <div class="feature">
+    <mat-icon>timeline</mat-icon>
+    <h3>Live monitoring</h3>
+    <p>Real-time stats over SSE with auto cleanup and lifecycle management.</p>
+  </div>
+</section>

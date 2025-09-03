@@ -1,0 +1,258 @@
+// Theme tokens
+:root {
+  --bg: #f5f7fa;
+  --bg-alt: #c3cfe2;
+  --text-primary: #1f2937;
+  --link-color: #2563eb;
+  --accent: #4fc3f7;
+  --card-bg: #ffffffcc;
+  --hero-start: #667eea;
+  --hero-end: #764ba2;
+  --text-on-hero: #ffffff;
+  --header-start: #1e3c72;
+  --header-end: #2a5298;
+  --shadow: 0 10px 30px rgba(0,0,0,0.12);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f172a;
+    --bg-alt: #111827;
+  --text-primary: #e5e7eb;
+    --link-color: #60a5fa;
+    --accent: #38bdf8;
+  --card-bg: #0b1220cc;
+    --hero-start: #111827;
+    --hero-end: #0b1220;
+    --text-on-hero: #e5e7eb;
+    --header-start: #0b1220;
+  --header-end: #0b2440;
+  --shadow: 0 12px 36px rgba(0,0,0,0.35);
+  }
+}
+
+// Modern App Styles - 2025
+.app-container {
+
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, var(--hero-start) 0%, var(--hero-end) 100%);
+}
+
+// Modern Header
+.app-header {
+  background: linear-gradient(135deg, var(--header-start) 0%, var(--header-end) 100%) !important;
+  box-shadow: var(--shadow);
+  padding: 0 24px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.app-logo {
+  font-size: 32px !important;
+  width: 32px !important;
+  height: 32px !important;
+  color: #4fc3f7;
+}
+
+.app-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-on-hero);
+  letter-spacing: -0.5px;
+}
+
+.app-subtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 400;
+}
+
+.header-nav {
+  display: flex;
+  gap: 8px;
+}
+
+.header-nav button {
+  color: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 8px !important;
+  padding: 8px 16px !important;
+  transition: all 0.3s ease !important;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+  }
+
+  &.active-nav {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: white !important;
+
+    mat-icon {
+      color: #4fc3f7;
+    }
+  }
+
+  mat-icon {
+    margin-right: 8px;
+  }
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+
+  button {
+    color: white !important;
+
+    mat-icon {
+      font-size: 28px !important;
+      width: 28px !important;
+      height: 28px !important;
+    }
+  }
+}
+
+// User Menu Styles
+.user-info-menu {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  gap: 12px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 8px;
+  margin: 8px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  mat-icon {
+    color: white;
+    font-size: 20px !important;
+  }
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-weight: 600;
+  color: #2d3748;
+  font-size: 14px;
+}
+
+.user-email {
+  font-size: 12px;
+  color: #718096;
+}
+
+// Material menu panel styling
+.mat-mdc-menu-panel {
+  background: var(--card-bg) !important;
+  color: var(--text-primary) !important;
+  box-shadow: var(--shadow) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.mat-mdc-menu-item {
+  color: var(--text-primary) !important;
+}
+
+// Main Content
+.main-content {
+  flex: 1 1 auto;
+  overflow: auto;
+  background: linear-gradient(135deg, var(--bg) 0%, var(--bg-alt) 100%);
+  padding: 0;
+}
+
+// Glass cards utility
+.glass {
+  background: var(--card-bg);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+  box-shadow: var(--shadow);
+}
+
+// Loading Overlay
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+
+  mat-spinner {
+    margin-bottom: 16px;
+  }
+
+  p {
+    color: white;
+    font-size: 16px;
+    font-weight: 500;
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0 16px;
+    height: 64px;
+  }
+
+  .header-nav {
+    display: none;
+  }
+
+  .app-title {
+    font-size: 20px;
+  }
+
+  .app-subtitle {
+    display: none;
+  }
+}
+
+// Custom scrollbar
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}

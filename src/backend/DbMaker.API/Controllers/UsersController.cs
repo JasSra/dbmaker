@@ -21,18 +21,18 @@ public class UsersController : ControllerBase
         _logger = logger;
     }
 
-    private string GetCurrentUserId()
+    private string? GetCurrentUserId()
     {
-        return User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? 
-               User.FindFirst("sub")?.Value ?? 
-               User.FindFirst("oid")?.Value ?? 
-               throw new UnauthorizedAccessException("User ID not found");
+        return User.FindFirst("oid")?.Value
+            ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? User.FindFirst("sub")?.Value;
     }
 
     [HttpGet("me")]
     public async Task<ActionResult<User>> GetCurrentUser()
     {
         var userId = GetCurrentUserId();
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
         var email = User.FindFirst(ClaimTypes.Email)?.Value ?? "unknown@domain.com";
         var name = User.FindFirst(ClaimTypes.Name)?.Value ?? "Unknown User";
 
@@ -69,6 +69,7 @@ public class UsersController : ControllerBase
     public async Task<ActionResult<object>> GetUserStats()
     {
         var userId = GetCurrentUserId();
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
         var stats = await _context.DatabaseContainers
             .Where(c => c.UserId == userId)
@@ -80,7 +81,7 @@ public class UsersController : ControllerBase
             .CountAsync(c => c.UserId == userId);
 
         var runningContainers = await _context.DatabaseContainers
-            .CountAsync(c => c.UserId == userId && c.Status == AppContainerStatus.Running);
+            .CountAsync(c => c.UserId == userId && c.Status == ContainerStatus.Running);
 
         return Ok(new
         {

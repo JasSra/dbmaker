@@ -1,0 +1,22 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "build-backend",
+			"type": "shell",
+			"command": "dotnet build c:\\dev\\DbMaker\\src\\backend\\DbMaker.sln -c Debug",
+			"isBackground": false,
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		},
+		{
+			"label": "run-backend",
+			"type": "shell",
+			"command": "dotnet run --project c:\\dev\\DbMaker\\src\\backend\\DbMaker.API\\DbMaker.API.csproj --no-build",
+			"isBackground": true,
+			"group": "build"
+		}
+	]
+}

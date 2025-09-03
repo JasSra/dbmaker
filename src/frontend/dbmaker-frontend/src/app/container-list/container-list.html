@@ -1,1 +1,252 @@
-<p>container-list works!</p>
+<div class="container-list-page">
+  <!-- Header Section -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">
+        <mat-icon>storage</mat-icon>
+        Database Containers
+      </h1>
+      <p class="page-subtitle">Manage your database instances</p>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" routerLink="/create" class="create-btn">
+        <mat-icon>add_circle</mat-icon>
+        Create Container
+      </button>
+      <button mat-icon-button matTooltip="Refresh" (click)="refreshContainers()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="filters-section">
+    <mat-card class="filters-card">
+      <mat-card-content>
+        <div class="filters-row">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Search containers</mat-label>
+            <input matInput
+                   [(ngModel)]="searchTerm"
+                   (input)="onSearchChange()"
+                   placeholder="Search by name, type, or status">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Filter by Status</mat-label>
+                    <mat-select [(value)]="statusFilter" (selectionChange)="applyFilters()">
+              <mat-option value="">All Statuses</mat-option>
+              <mat-option value="Running">Running</mat-option>
+              <mat-option value="Stopped">Stopped</mat-option>
+              <mat-option value="Creating">Creating</mat-option>
+              <mat-option value="Failed">Failed</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Filter by Type</mat-label>
+                     <mat-select [(value)]="typeFilter" (selectionChange)="applyFilters()">
+              <mat-option value="">All Types</mat-option>
+              <mat-option value="postgresql">PostgreSQL</mat-option>
+              <mat-option value="redis">Redis</mat-option>
+              <mat-option value="mysql">MySQL</mat-option>
+              <mat-option value="mongodb">MongoDB</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-section">
+    <mat-card class="loading-card">
+      <mat-card-content>
+        <div class="loading-content">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Loading containers...</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage && !loading" class="error-section">
+    <mat-card class="error-card">
+      <mat-card-content>
+        <div class="error-content">
+          <mat-icon class="error-icon">error</mat-icon>
+          <h3>Error Loading Containers</h3>
+          <p>{{ errorMessage }}</p>
+          <button mat-raised-button color="primary" (click)="refreshContainers()">
+            <mat-icon>refresh</mat-icon>
+            Try Again
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && !errorMessage && filteredContainers.length === 0 && containers.length === 0" class="empty-section">
+    <mat-card class="empty-card">
+      <mat-card-content>
+        <div class="empty-content">
+          <mat-icon class="empty-icon">inbox</mat-icon>
+          <h3>No Containers Yet</h3>
+          <p>Create your first database container to get started with DbMaker</p>
+          <button mat-raised-button color="primary" routerLink="/create">
+            <mat-icon>add_circle</mat-icon>
+            Create Your First Container
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- No Results State -->
+  <div *ngIf="!loading && !errorMessage && filteredContainers.length === 0 && containers.length > 0" class="no-results-section">
+    <mat-card class="no-results-card">
+      <mat-card-content>
+        <div class="no-results-content">
+          <mat-icon class="no-results-icon">search_off</mat-icon>
+          <h3>No Matching Containers</h3>
+          <p>No containers match your current filters</p>
+          <button mat-button (click)="clearFilters()">Clear Filters</button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Containers Grid -->
+  <div *ngIf="!loading && !errorMessage && filteredContainers.length > 0" class="containers-section">
+    <div class="containers-grid">
+      <mat-card *ngFor="let container of filteredContainers; trackBy: trackByContainerId"
+                class="container-card"
+                [ngClass]="'status-' + container.status.toLowerCase()">
+
+        <!-- Container Header -->
+        <mat-card-header class="container-header">
+          <div mat-card-avatar class="container-avatar" [ngClass]="container.databaseType">
+            <mat-icon>{{ getContainerIcon(container.databaseType) }}</mat-icon>
+          </div>
+          <mat-card-title>{{ container.name }}</mat-card-title>
+          <mat-card-subtitle>{{ container.databaseType | titlecase }}</mat-card-subtitle>
+          <div class="header-actions">
+            <mat-chip [ngClass]="'status-chip-' + container.status.toLowerCase()">
+              <mat-icon matChipLeadingIcon>{{ getStatusIcon(container.status) }}</mat-icon>
+              {{ container.status }}
+            </mat-chip>
+          </div>
+        </mat-card-header>
+
+        <!-- Container Content -->
+        <mat-card-content class="container-content">
+          <div class="container-details">
+            <div class="detail-row">
+              <mat-icon class="detail-icon">dns</mat-icon>
+              <span class="detail-label">Port:</span>
+              <span class="detail-value">{{ container.port }}</span>
+            </div>
+            <div class="detail-row">
+              <mat-icon class="detail-icon">link</mat-icon>
+              <span class="detail-label">Subdomain:</span>
+              <span class="detail-value">{{ container.subdomain }}</span>
+            </div>
+            <div class="detail-row">
+              <mat-icon class="detail-icon">schedule</mat-icon>
+              <span class="detail-label">Created:</span>
+              <span class="detail-value">{{ container.createdAt | date:'medium' }}</span>
+            </div>
+            <div class="detail-row" *ngIf="container.configuration?.['memory']">
+              <mat-icon class="detail-icon">memory</mat-icon>
+              <span class="detail-label">Memory:</span>
+              <span class="detail-value">{{ container.configuration['memory'] }}</span>
+            </div>
+          </div>
+
+          <!-- Monitoring Data -->
+          <div class="monitoring-section" *ngIf="getMonitoringData(container.id) as monitoringData">
+            <h4>Resource Usage</h4>
+            <div class="metrics-grid">
+              <div class="metric">
+                <span class="metric-label">CPU</span>
+                <mat-progress-bar mode="determinate" [value]="monitoringData.cpuUsage"></mat-progress-bar>
+                <span class="metric-value">{{ monitoringData.cpuUsage }}%</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Memory</span>
+                <mat-progress-bar mode="determinate" [value]="monitoringData.memoryUsage"></mat-progress-bar>
+                <span class="metric-value">{{ monitoringData.memoryUsage }}%</span>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+
+        <!-- Container Actions -->
+        <mat-card-actions class="container-actions">
+          <div class="action-buttons">
+            <!-- Start/Stop Actions -->
+            <button *ngIf="container.status === 'Stopped'"
+                    mat-raised-button
+                    color="primary"
+                    (click)="startContainer(container)"
+                    [disabled]="actionInProgress === container.id">
+              <mat-icon>play_arrow</mat-icon>
+              Start
+            </button>
+
+            <button *ngIf="container.status === 'Running'"
+                    mat-raised-button
+                    color="warn"
+                    (click)="stopContainer(container)"
+                    [disabled]="actionInProgress === container.id">
+              <mat-icon>stop</mat-icon>
+              Stop
+            </button>
+
+            <!-- Connection Actions -->
+            <button *ngIf="container.status === 'Running'"
+                    mat-button
+                    (click)="copyConnectionString(container.connectionString)"
+                    matTooltip="Copy Connection String">
+              <mat-icon>content_copy</mat-icon>
+              Copy Connection
+            </button>
+
+            <button *ngIf="container.status === 'Running'"
+                    mat-button
+                    (click)="openContainer(container)"
+                    matTooltip="Open Container">
+              <mat-icon>open_in_new</mat-icon>
+              Open
+            </button>
+
+            <!-- More Actions Menu -->
+            <button mat-icon-button [matMenuTriggerFor]="containerMenu" matTooltip="More actions">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #containerMenu="matMenu">
+              <button mat-menu-item (click)="viewLogs(container)">
+                <mat-icon>description</mat-icon>
+                View Logs
+              </button>
+              <button mat-menu-item (click)="editContainer(container)">
+                <mat-icon>edit</mat-icon>
+                Edit Configuration
+              </button>
+              <mat-divider></mat-divider>
+              <button mat-menu-item
+                      (click)="deleteContainer(container)"
+                      class="delete-action">
+                <mat-icon>delete</mat-icon>
+                Delete Container
+              </button>
+            </mat-menu>
+          </div>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+</div>

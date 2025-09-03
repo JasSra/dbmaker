@@ -16,7 +16,7 @@ public class TemplatesController : ControllerBase
     [HttpGet]
     public ActionResult<List<object>> GetAvailableTemplates()
     {
-        var templates = new[]
+        var templates = new object[]
         {
             new
             {
@@ -61,7 +61,7 @@ public class TemplatesController : ControllerBase
                 Description = "In-memory data structure store with persistence support",
                 Documentation = "https://redis.io/docs/",
                 Port = 6379,
-                ConfigurationOptions = new[]
+                ConfigurationOptions = new object[]
                 {
                     new { Name = "maxmemory", Type = "string", Default = "256mb", Description = "Maximum memory limit" },
                     new { Name = "maxmemory-policy", Type = "select", Default = "allkeys-lru", Options = new[] { "allkeys-lru", "volatile-lru", "noeviction" }, Description = "Memory eviction policy" }
@@ -74,13 +74,13 @@ public class TemplatesController : ControllerBase
                 Description = "Advanced open source relational database",
                 Documentation = "https://www.postgresql.org/docs/",
                 Port = 5432,
-                ConfigurationOptions = new[]
+                ConfigurationOptions = new object[]
                 {
                     new { Name = "database_name", Type = "string", Default = "userdb", Description = "Database name" },
                     new { Name = "username", Type = "string", Default = "dbuser", Description = "Database username" }
                 }
             },
-            _ => null
+            _ => (object?)null
         };
 
         if (template == null)

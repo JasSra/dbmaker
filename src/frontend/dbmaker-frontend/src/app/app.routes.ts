@@ -1,24 +1,20 @@
 import { Routes } from '@angular/router';
-import { MsalGuard } from '@azure/msal-angular';
 import { DashboardComponent } from './dashboard/dashboard';
 import { ContainerListComponent } from './container-list/container-list';
-import { CreateContainerComponent } from './create-container/create-container';
+import { LandingComponent } from './landing/landing.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
+  { path: '', component: LandingComponent },
   {
     path: 'dashboard',
-    component: DashboardComponent,
-    canActivate: [MsalGuard]
+    component: DashboardComponent
   },
   {
     path: 'containers',
-    component: ContainerListComponent,
-    canActivate: [MsalGuard]
+    component: ContainerListComponent
   },
   {
     path: 'create',
-    component: CreateContainerComponent,
-    canActivate: [MsalGuard]
+  loadComponent: () => import('./create-container/create-container.component').then(m => m.CreateContainerComponent)
   }
 ];

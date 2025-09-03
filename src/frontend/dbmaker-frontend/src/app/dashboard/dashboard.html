@@ -1,1 +1,162 @@
-<p>dashboard works!</p>
+<div class="dashboard-container">
+  <!-- Hero Section -->
+  <div class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title">Welcome to DbMaker</h1>
+      <p class="hero-subtitle">Orchestrate your database containers with enterprise-grade precision</p>
+    </div>
+    <div class="hero-actions">
+      <button mat-raised-button color="primary" routerLink="/create" class="cta-button">
+        <mat-icon>add_circle</mat-icon>
+        Create New Container
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    <mat-card class="stat-card fade-in-up delay-1">
+      <mat-card-content>
+        <div class="stat-icon">
+          <mat-icon>storage</mat-icon>
+        </div>
+        <div class="stat-details">
+          <div class="stat-number">{{ containers.length }}</div>
+          <div class="stat-label">Total Containers</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card fade-in-up delay-2">
+      <mat-card-content>
+        <div class="stat-icon running">
+          <mat-icon>play_circle</mat-icon>
+        </div>
+        <div class="stat-details">
+          <div class="stat-number">{{ getRunningContainers() }}</div>
+          <div class="stat-label">Running</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card fade-in-up delay-3">
+      <mat-card-content>
+        <div class="stat-icon postgres">
+          <mat-icon>data_object</mat-icon>
+        </div>
+        <div class="stat-details">
+          <div class="stat-number">{{ getContainersByType('postgresql').length }}</div>
+          <div class="stat-label">PostgreSQL</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card fade-in-up delay-4">
+      <mat-card-content>
+        <div class="stat-icon redis">
+          <mat-icon>memory</mat-icon>
+        </div>
+        <div class="stat-details">
+          <div class="stat-number">{{ getContainersByType('redis').length }}</div>
+          <div class="stat-label">Redis</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Recent Containers -->
+  <div class="content-section">
+    <mat-card class="content-card fade-in-up delay-5">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>schedule</mat-icon>
+          Recent Containers
+        </mat-card-title>
+        <mat-card-subtitle>Your latest database instances</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div *ngIf="containers.length === 0" class="empty-state">
+          <mat-icon class="empty-icon">inbox</mat-icon>
+          <h3>No containers yet</h3>
+          <p>Create your first database container to get started</p>
+          <button mat-raised-button color="primary" routerLink="/create">
+            <mat-icon>add</mat-icon>
+            Create Container
+          </button>
+        </div>
+
+        <div *ngIf="containers.length > 0" class="container-list">
+          <div *ngFor="let container of getRecentContainers(); let i = index"
+               class="container-item slide-in-right"
+               [ngClass]="'delay-' + (6 + i)">
+            <div class="container-info">
+              <div class="container-icon" [ngClass]="container.databaseType">
+                <mat-icon>{{ getContainerIcon(container.databaseType) }}</mat-icon>
+              </div>
+              <div class="container-details">
+                <div class="container-name">{{ container.name }}</div>
+                <div class="container-type">{{ container.databaseType | titlecase }}</div>
+              </div>
+            </div>
+
+            <div class="container-status">
+              <mat-chip [ngClass]="'status-' + container.status.toLowerCase()">
+                <mat-icon>{{ getStatusIcon(container.status) }}</mat-icon>
+                {{ container.status }}
+              </mat-chip>
+            </div>
+
+            <div class="container-actions">
+              <button mat-icon-button
+                      *ngIf="container.status === 'Running'"
+                      matTooltip="Copy Connection String"
+                      (click)="copyConnectionString(container.connectionString)">
+                <mat-icon>content_copy</mat-icon>
+              </button>
+              <button mat-icon-button
+                      matTooltip="View Details"
+                      routerLink="/containers">
+                <mat-icon>visibility</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="content-section">
+    <mat-card class="content-card fade-in-up delay-7">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>bolt</mat-icon>
+          Quick Actions
+        </mat-card-title>
+        <mat-card-subtitle>Common database management tasks</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="quick-actions-grid">
+          <button mat-button class="quick-action-btn" routerLink="/create">
+            <mat-icon>add_circle_outline</mat-icon>
+            <span>New Container</span>
+          </button>
+          <button mat-button class="quick-action-btn" routerLink="/containers">
+            <mat-icon>list</mat-icon>
+            <span>View All</span>
+          </button>
+          <button mat-button class="quick-action-btn" (click)="refreshData()">
+            <mat-icon>refresh</mat-icon>
+            <span>Refresh</span>
+          </button>
+          <button mat-button class="quick-action-btn" (click)="exportData()">
+            <mat-icon>download</mat-icon>
+            <span>Export</span>
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

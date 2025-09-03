@@ -2,13 +2,12 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ContainerResponse, CreateContainerRequest, ContainerMonitoringData, DatabaseTemplate } from '../models/container.models';
-import { protectedResources } from '../auth-config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ContainerService {
-  private readonly baseUrl = protectedResources.apiEndpoint;
+  private readonly baseUrl = 'http://localhost:5021/api';
 
   constructor(private http: HttpClient) {}
 
@@ -48,7 +47,7 @@ export class ContainerService {
     return this.http.get<DatabaseTemplate>(`${this.baseUrl}/templates/${type}`);
   }
 
-  // Server-Sent Events for real-time monitoring
+  // Server-Sent Events for real-time monitoring (requires auth)
   getMonitoringStream(): EventSource {
     return new EventSource(`${this.baseUrl}/monitoring/events`);
   }

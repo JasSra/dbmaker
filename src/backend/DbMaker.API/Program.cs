@@ -20,7 +20,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAngularDev",
         policy =>
         {
-            policy.WithOrigins("http://localhost:4200", "https://console.mydomain.com")
+            policy.WithOrigins("http://localhost:4200", "http://localhost:56697", "https://console.mydomain.com")
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials();
@@ -29,7 +29,8 @@ builder.Services.AddCors(options =>
 
 // Add Entity Framework
 builder.Services.AddDbContext<DbMakerDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"),
+        b => b.MigrationsAssembly("DbMaker.API")));
 
 // Add custom services
 builder.Services.AddScoped<IContainerOrchestrator, ContainerOrchestrator>();
@@ -43,7 +44,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// Disable HTTPS redirection for local development
+// app.UseHttpsRedirection();
 app.UseCors("AllowAngularDev");
 app.UseAuthentication();
 app.UseAuthorization();
@@ -53,6 +55,11 @@ app.MapControllers();
 // Server-Sent Events endpoint for monitoring
 app.MapGet("/api/monitoring/events", async (HttpContext context) =>
 {
+    if (!context.User?.Identity?.IsAuthenticated ?? true)
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        return;
+    }
     context.Response.Headers["Content-Type"] = "text/event-stream";
     context.Response.Headers["Cache-Control"] = "no-cache";
     context.Response.Headers["Connection"] = "keep-alive";

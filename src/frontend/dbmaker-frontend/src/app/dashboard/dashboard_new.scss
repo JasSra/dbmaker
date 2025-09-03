@@ -1,5 +1,5 @@
 .dashboard-container {
-  min-height: unset;
+  min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 0;
   margin: 0;
@@ -9,7 +9,6 @@
 // Hero Section
 .hero-section {
   background: rgba(255, 255, 255, 0.1);
-  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   padding: 4rem 2rem 3rem;
   text-align: center;
@@ -439,18 +438,6 @@
   animation: slideInRight 0.6s ease-out forwards;
   opacity: 0;
 }
-
-// Animation delay classes
-.delay-1 { animation-delay: 0.1s; }
-.delay-2 { animation-delay: 0.2s; }
-.delay-3 { animation-delay: 0.3s; }
-.delay-4 { animation-delay: 0.4s; }
-.delay-5 { animation-delay: 0.5s; }
-.delay-6 { animation-delay: 0.6s; }
-.delay-7 { animation-delay: 0.7s; }
-.delay-8 { animation-delay: 0.8s; }
-.delay-9 { animation-delay: 0.9s; }
-.delay-10 { animation-delay: 1.0s; }
 
 // Responsive Design
 @media (max-width: 768px) {

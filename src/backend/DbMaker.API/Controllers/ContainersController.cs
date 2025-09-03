@@ -27,18 +27,19 @@ public class ContainersController : ControllerBase
         _logger = logger;
     }
 
-    private string GetCurrentUserId()
+    private string? GetCurrentUserId()
     {
-        return User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? 
-               User.FindFirst("sub")?.Value ?? 
-               User.FindFirst("oid")?.Value ?? 
-               throw new UnauthorizedAccessException("User ID not found");
+        // Prefer Azure AD B2C OID; fallback to sub/nameidentifier
+        return User.FindFirst("oid")?.Value
+            ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? User.FindFirst("sub")?.Value;
     }
 
     [HttpGet]
     public async Task<ActionResult<List<ContainerResponse>>> GetContainers()
     {
-        var userId = GetCurrentUserId();
+    var userId = GetCurrentUserId();
+    if (string.IsNullOrEmpty(userId)) return Unauthorized();
         
         var containers = await _context.DatabaseContainers
             .Where(c => c.UserId == userId)
@@ -62,7 +63,8 @@ public class ContainersController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<ContainerResponse>> GetContainer(string id)
     {
-        var userId = GetCurrentUserId();
+    var userId = GetCurrentUserId();
+    if (string.IsNullOrEmpty(userId)) return Unauthorized();
         
         var container = await _context.DatabaseContainers
             .Where(c => c.Id == id && c.UserId == userId)
@@ -89,7 +91,8 @@ public class ContainersController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ContainerResponse>> CreateContainer(CreateContainerRequest request)
     {
-        var userId = GetCurrentUserId();
+    var userId = GetCurrentUserId();
+    if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
         // Ensure user exists
         var user = await _context.Users.FindAsync(userId);
@@ -145,7 +148,8 @@ public class ContainersController : ControllerBase
     [HttpPost("{id}/start")]
     public async Task<ActionResult> StartContainer(string id)
     {
-        var userId = GetCurrentUserId();
+    var userId = GetCurrentUserId();
+    if (string.IsNullOrEmpty(userId)) return Unauthorized();
         
         var container = await _context.DatabaseContainers
             .FirstOrDefaultAsync(c => c.Id == id && c.UserId == userId);
@@ -156,7 +160,7 @@ public class ContainersController : ControllerBase
         var success = await _orchestrator.StartContainerAsync(container.ContainerId);
         if (success)
         {
-            container.Status = AppContainerStatus.Running;
+            container.Status = ContainerStatus.Running;
             await _context.SaveChangesAsync();
             return Ok();
         }
@@ -167,7 +171,8 @@ public class ContainersController : ControllerBase
     [HttpPost("{id}/stop")]
     public async Task<ActionResult> StopContainer(string id)
     {
-        var userId = GetCurrentUserId();
+    var userId = GetCurrentUserId();
+    if (string.IsNullOrEmpty(userId)) return Unauthorized();
         
         var container = await _context.DatabaseContainers
             .FirstOrDefaultAsync(c => c.Id == id && c.UserId == userId);
@@ -178,7 +183,7 @@ public class ContainersController : ControllerBase
         var success = await _orchestrator.StopContainerAsync(container.ContainerId);
         if (success)
         {
-            container.Status = AppContainerStatus.Stopped;
+            container.Status = ContainerStatus.Stopped;
             await _context.SaveChangesAsync();
             return Ok();
         }
@@ -189,7 +194,8 @@ public class ContainersController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteContainer(string id)
     {
-        var userId = GetCurrentUserId();
+    var userId = GetCurrentUserId();
+    if (string.IsNullOrEmpty(userId)) return Unauthorized();
         
         var container = await _context.DatabaseContainers
             .FirstOrDefaultAsync(c => c.Id == id && c.UserId == userId);
@@ -218,7 +224,8 @@ public class ContainersController : ControllerBase
     [HttpGet("{id}/stats")]
     public async Task<ActionResult<ContainerMonitoringData>> GetContainerStats(string id)
     {
-        var userId = GetCurrentUserId();
+    var userId = GetCurrentUserId();
+    if (string.IsNullOrEmpty(userId)) return Unauthorized();
         
         var container = await _context.DatabaseContainers
             .FirstOrDefaultAsync(c => c.Id == id && c.UserId == userId);

@@ -1,0 +1,26 @@
+.create-container {
+  max-width: 860px;
+  margin: 32px auto;
+  padding: 0 16px;
+}
+
+mat-card { background: var(--card-bg); color: var(--text-primary); }
+mat-card-title { text-align: center; font-size: 24px; margin: 8px 0 16px; }
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.form-grid .full { grid-column: 1 / -1; }
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.success { color: #10b981; margin-top: 8px; }
+.error { color: #ef4444; margin-top: 8px; }
