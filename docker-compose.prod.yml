@@ -1,0 +1,104 @@
+# Production deployment script
+version: '3.8'
+
+services:
+  # Reverse proxy for subdomain routing
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+      - "443:443"   # HTTPS support
+      - "8080:8080"  # Health check port
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - nginx-logs:/var/log/nginx
+      - ssl-certs:/etc/ssl/certs  # SSL certificates
+    depends_on:
+      - dbmaker-api
+    networks:
+      - dbmaker-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # .NET API Backend
+  dbmaker-api:
+    build: 
+      context: ./src/backend
+      dockerfile: DbMaker.API/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5000
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/dbmaker.db
+      - ContainerSettings__PortRangeStart=10000
+      - ContainerSettings__PortRangeEnd=19999
+      - ContainerSettings__BaseDomain=mydomain.com
+    volumes:
+      - api-data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock  # For Docker API access
+    ports:
+      - "5000:5000"
+    networks:
+      - dbmaker-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Container monitoring and cleanup workers
+  dbmaker-workers:
+    build:
+      context: ./src/backend
+      dockerfile: DbMaker.Workers/Dockerfile
+    environment:
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/dbmaker.db
+      - ContainerSettings__MonitoringIntervalSeconds=30
+      - ContainerSettings__CleanupIntervalHours=24
+    volumes:
+      - api-data:/app/data  # Share database with API
+      - /var/run/docker.sock:/var/run/docker.sock  # For Docker API access
+    depends_on:
+      - dbmaker-api
+    networks:
+      - dbmaker-network
+    restart: unless-stopped
+
+  # Angular Frontend (for development)
+  dbmaker-frontend:
+    build:
+      context: ./src/frontend/dbmaker-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "4200:4200"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - dbmaker-network
+    restart: unless-stopped
+
+volumes:
+  api-data:
+    driver: local
+  nginx-logs:
+    driver: local
+  ssl-certs:
+    driver: local
+
+networks:
+  dbmaker-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# Port allocation strategy:
+# 80, 443 - nginx (reverse proxy)
+# 5000 - API backend
+# 4200 - Angular frontend (development)
+# 8080 - nginx health check
+# 10000-19999 - Dynamic user database containers

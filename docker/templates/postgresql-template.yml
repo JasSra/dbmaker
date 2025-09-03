@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  postgres-template:
+    image: postgres:16-alpine
+    ports:
+      - "{HOST_PORT}:5432"
+    environment:
+      - POSTGRES_DB={POSTGRES_DB:-userdb}
+      - POSTGRES_USER={POSTGRES_USER:-dbuser}
+      - POSTGRES_PASSWORD={POSTGRES_PASSWORD:-secure_password_123}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres-{INSTANCE_ID}-data:/var/lib/postgresql/data
+    labels:
+      - "dbmaker.userId={USER_ID}"
+      - "dbmaker.databaseType=postgresql"
+      - "dbmaker.containerName={CONTAINER_NAME}"
+      - "dbmaker.subdomain={SUBDOMAIN}"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dbuser} -d ${POSTGRES_DB:-userdb}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  postgres-{INSTANCE_ID}-data:
+    driver: local

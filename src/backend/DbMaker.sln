@@ -1,0 +1,62 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbMaker.API", "DbMaker.API\DbMaker.API.csproj", "{1062D92B-202B-41ED-9284-CB21919B5C6D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbMaker.Workers", "DbMaker.Workers\DbMaker.Workers.csproj", "{0492BC06-E5B7-40C1-A4D3-4162B05582DA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbMaker.Shared", "DbMaker.Shared\DbMaker.Shared.csproj", "{6B68B4F4-E3F8-4A36-B4F2-2787E996B997}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1062D92B-202B-41ED-9284-CB21919B5C6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1062D92B-202B-41ED-9284-CB21919B5C6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1062D92B-202B-41ED-9284-CB21919B5C6D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1062D92B-202B-41ED-9284-CB21919B5C6D}.Debug|x64.Build.0 = Debug|Any CPU
+		{1062D92B-202B-41ED-9284-CB21919B5C6D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1062D92B-202B-41ED-9284-CB21919B5C6D}.Debug|x86.Build.0 = Debug|Any CPU
+		{1062D92B-202B-41ED-9284-CB21919B5C6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1062D92B-202B-41ED-9284-CB21919B5C6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1062D92B-202B-41ED-9284-CB21919B5C6D}.Release|x64.ActiveCfg = Release|Any CPU
+		{1062D92B-202B-41ED-9284-CB21919B5C6D}.Release|x64.Build.0 = Release|Any CPU
+		{1062D92B-202B-41ED-9284-CB21919B5C6D}.Release|x86.ActiveCfg = Release|Any CPU
+		{1062D92B-202B-41ED-9284-CB21919B5C6D}.Release|x86.Build.0 = Release|Any CPU
+		{0492BC06-E5B7-40C1-A4D3-4162B05582DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0492BC06-E5B7-40C1-A4D3-4162B05582DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0492BC06-E5B7-40C1-A4D3-4162B05582DA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0492BC06-E5B7-40C1-A4D3-4162B05582DA}.Debug|x64.Build.0 = Debug|Any CPU
+		{0492BC06-E5B7-40C1-A4D3-4162B05582DA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0492BC06-E5B7-40C1-A4D3-4162B05582DA}.Debug|x86.Build.0 = Debug|Any CPU
+		{0492BC06-E5B7-40C1-A4D3-4162B05582DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0492BC06-E5B7-40C1-A4D3-4162B05582DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0492BC06-E5B7-40C1-A4D3-4162B05582DA}.Release|x64.ActiveCfg = Release|Any CPU
+		{0492BC06-E5B7-40C1-A4D3-4162B05582DA}.Release|x64.Build.0 = Release|Any CPU
+		{0492BC06-E5B7-40C1-A4D3-4162B05582DA}.Release|x86.ActiveCfg = Release|Any CPU
+		{0492BC06-E5B7-40C1-A4D3-4162B05582DA}.Release|x86.Build.0 = Release|Any CPU
+		{6B68B4F4-E3F8-4A36-B4F2-2787E996B997}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B68B4F4-E3F8-4A36-B4F2-2787E996B997}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B68B4F4-E3F8-4A36-B4F2-2787E996B997}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6B68B4F4-E3F8-4A36-B4F2-2787E996B997}.Debug|x64.Build.0 = Debug|Any CPU
+		{6B68B4F4-E3F8-4A36-B4F2-2787E996B997}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6B68B4F4-E3F8-4A36-B4F2-2787E996B997}.Debug|x86.Build.0 = Debug|Any CPU
+		{6B68B4F4-E3F8-4A36-B4F2-2787E996B997}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B68B4F4-E3F8-4A36-B4F2-2787E996B997}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B68B4F4-E3F8-4A36-B4F2-2787E996B997}.Release|x64.ActiveCfg = Release|Any CPU
+		{6B68B4F4-E3F8-4A36-B4F2-2787E996B997}.Release|x64.Build.0 = Release|Any CPU
+		{6B68B4F4-E3F8-4A36-B4F2-2787E996B997}.Release|x86.ActiveCfg = Release|Any CPU
+		{6B68B4F4-E3F8-4A36-B4F2-2787E996B997}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

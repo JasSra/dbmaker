@@ -1,0 +1,58 @@
+# Development deployment script
+version: '3.8'
+
+services:
+  # .NET API Backend (Development)
+  dbmaker-api:
+    build: 
+      context: ./src/backend
+      dockerfile: DbMaker.API/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5000
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/dbmaker.db
+      - ContainerSettings__PortRangeStart=10000
+      - ContainerSettings__PortRangeEnd=10099  # Smaller range for dev
+      - ContainerSettings__BaseDomain=localhost
+    volumes:
+      - ./src/backend:/src  # Mount source for hot reload
+      - api-data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "5000:5000"
+    networks:
+      - dbmaker-network
+    restart: unless-stopped
+
+  # Workers (Development)
+  dbmaker-workers:
+    build:
+      context: ./src/backend
+      dockerfile: DbMaker.Workers/Dockerfile
+    environment:
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/dbmaker.db
+      - ContainerSettings__MonitoringIntervalSeconds=10  # Faster monitoring for dev
+      - ContainerSettings__CleanupIntervalHours=1  # Faster cleanup for dev
+    volumes:
+      - ./src/backend:/src  # Mount source for hot reload
+      - api-data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - dbmaker-api
+    networks:
+      - dbmaker-network
+    restart: unless-stopped
+
+volumes:
+  api-data:
+    driver: local
+
+networks:
+  dbmaker-network:
+    driver: bridge
+
+# Development Notes:
+# - Frontend runs on host (npm start) for hot reload
+# - Only backend services in Docker for development
+# - Reduced port range and faster intervals for testing
+# - Source code mounted for live updates
