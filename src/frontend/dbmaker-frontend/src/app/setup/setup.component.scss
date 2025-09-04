@@ -1,0 +1,233 @@
+.setup-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+}
+
+.setup-card {
+  max-width: 800px;
+  width: 100%;
+  margin: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+}
+
+.setup-card mat-card-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  margin: -24px -24px 24px -24px;
+  padding: 24px;
+  border-radius: 16px 16px 0 0;
+}
+
+.setup-card mat-card-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.5em;
+  font-weight: 500;
+}
+
+.step-content {
+  padding: 24px 0;
+}
+
+.validation-checks {
+  margin: 24px 0;
+}
+
+.validation-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background: #fafafa;
+}
+
+.validation-label {
+  flex: 1;
+  font-weight: 500;
+}
+
+.validation-status {
+  color: #666;
+  font-size: 0.9em;
+}
+
+.validation-details {
+  margin-top: 24px;
+}
+
+.detail-card {
+  margin-bottom: 16px;
+  background: #f8f9fa;
+}
+
+.detail-card mat-card-title {
+  font-size: 1.1em;
+  color: #333;
+}
+
+.detail-card pre {
+  background: #f1f3f4;
+  padding: 12px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  overflow-x: auto;
+}
+
+.step-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.success-info {
+  text-align: center;
+  margin: 24px 0;
+}
+
+.large-icon {
+  font-size: 48px;
+  height: 48px;
+  width: 48px;
+}
+
+.backup-key-card {
+  margin: 24px 0;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+}
+
+.backup-key-card mat-card-header {
+  background: #ffeaa7;
+  color: #856404;
+  margin: -16px -16px 16px -16px;
+  padding: 16px;
+}
+
+.warning-text {
+  color: #856404;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.backup-key-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.backup-key {
+  flex: 1;
+  font-family: 'Courier New', monospace;
+  background: #f8f9fa;
+  padding: 8px;
+  border-radius: 4px;
+  word-break: break-all;
+  font-size: 0.9em;
+}
+
+.setup-summary {
+  margin: 24px 0;
+  padding: 16px;
+  background: #e8f5e8;
+  border-radius: 8px;
+  border: 1px solid #c8e6c9;
+}
+
+.setup-summary h4 {
+  margin: 0 0 12px 0;
+  color: #2e7d32;
+}
+
+.setup-summary ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.setup-summary li {
+  color: #2e7d32;
+  margin-bottom: 4px;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.loading-overlay p {
+  margin-top: 16px;
+  color: #666;
+  font-size: 1.1em;
+}
+
+/* Stepper customizations */
+::ng-deep .mat-stepper-vertical {
+  background: transparent;
+}
+
+::ng-deep .mat-step-header {
+  pointer-events: none;
+}
+
+::ng-deep .mat-step-icon {
+  background-color: #667eea;
+}
+
+::ng-deep .mat-step-icon-selected {
+  background-color: #764ba2;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .setup-container {
+    padding: 10px;
+  }
+
+  .setup-card {
+    margin: 10px;
+  }
+
+  .validation-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .step-actions {
+    flex-direction: column;
+  }
+
+  .step-actions button {
+    width: 100%;
+  }
+}

@@ -6,6 +6,10 @@ import { LandingComponent } from './landing/landing.component';
 export const routes: Routes = [
   { path: '', component: LandingComponent },
   {
+    path: 'setup',
+    loadComponent: () => import('./setup/setup.component').then(m => m.SetupComponent)
+  },
+  {
     path: 'dashboard',
     component: DashboardComponent
   },
@@ -15,6 +19,6 @@ export const routes: Routes = [
   },
   {
     path: 'create',
-  loadComponent: () => import('./create-container/create-container.component').then(m => m.CreateContainerComponent)
+    loadComponent: () => import('./create-container/create-container.component').then(m => m.CreateContainerComponent)
   }
 ];

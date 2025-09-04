@@ -4,19 +4,36 @@
 		{
 			"label": "build-backend",
 			"type": "shell",
-			"command": "dotnet build c:\\dev\\DbMaker\\src\\backend\\DbMaker.sln -c Debug",
+			"command": "dotnet build src/backend/DbMaker.sln -c Debug",
 			"isBackground": false,
 			"problemMatcher": [
 				"$msCompile"
 			],
-			"group": "build"
+			"group": "build",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			}
 		},
 		{
 			"label": "run-backend",
 			"type": "shell",
-			"command": "dotnet run --project c:\\dev\\DbMaker\\src\\backend\\DbMaker.API\\DbMaker.API.csproj --no-build",
+			"command": "dotnet run --project src/backend/DbMaker.API/DbMaker.API.csproj",
 			"isBackground": true,
-			"group": "build"
+			"group": "build",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			}
+		},
+		{
+			"label": "generate-api-client",
+			"type": "shell",
+			"command": "nswag run nswag.json",
+			"isBackground": false,
+			"group": "build",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"dependsOn": "build-backend"
 		}
 	]
 }

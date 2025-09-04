@@ -1,0 +1,210 @@
+<div class="setup-container">
+  <mat-card class="setup-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>settings</mat-icon>
+        DbMaker System Setup
+      </mat-card-title>
+      <mat-card-subtitle>
+        Initialize your database container orchestration system
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <mat-stepper [linear]="true" orientation="vertical" [(selectedIndex)]="currentStep">
+
+        <!-- Step 1: System Prerequisites -->
+        <mat-step [completed]="setupStatus?.databaseConfigured && validationResults['docker']?.isValid && validationResults['msal']?.isValid">
+          <ng-template matStepLabel>System Prerequisites</ng-template>
+
+          <div class="step-content">
+            <h3>Checking system prerequisites...</h3>
+
+            <div class="validation-checks" *ngIf="setupStatus">
+
+              <!-- Database Check -->
+              <div class="validation-item">
+                <mat-icon [color]="getStatusColor(setupStatus.databaseConfigured)">
+                  {{ getStatusIcon(setupStatus.databaseConfigured) }}
+                </mat-icon>
+                <span class="validation-label">Database Connection</span>
+                <span class="validation-status">
+                  {{ setupStatus.databaseConfigured ? 'Connected' : 'Failed' }}
+                </span>
+              </div>
+
+              <!-- Docker Check -->
+              <div class="validation-item">
+                <mat-icon [color]="getStatusColor(validationResults['docker']?.isValid)">
+                  {{ getStatusIcon(validationResults['docker']?.isValid) }}
+                </mat-icon>
+                <span class="validation-label">Docker Daemon</span>
+                <span class="validation-status">
+                  {{ validationResults['docker']?.isValid ? 'Connected' : 'Failed' }}
+                </span>
+                <button mat-icon-button (click)="validateDocker()"
+                        matTooltip="Re-validate Docker connection">
+                  <mat-icon>refresh</mat-icon>
+                </button>
+              </div>
+
+              <!-- MSAL Check -->
+              <div class="validation-item">
+                <mat-icon [color]="getStatusColor(validationResults['msal']?.isValid)">
+                  {{ getStatusIcon(validationResults['msal']?.isValid) }}
+                </mat-icon>
+                <span class="validation-label">MSAL Configuration</span>
+                <span class="validation-status">
+                  {{ validationResults['msal']?.isValid ? 'Valid' : 'Invalid' }}
+                </span>
+                <button mat-icon-button (click)="validateMsal()"
+                        matTooltip="Re-validate MSAL configuration">
+                  <mat-icon>refresh</mat-icon>
+                </button>
+              </div>
+            </div>
+
+            <!-- Validation Details -->
+            <div class="validation-details" *ngIf="validationResults['docker'] || validationResults['msal']">
+              <mat-card *ngIf="validationResults['docker']" class="detail-card">
+                <mat-card-title>Docker Details</mat-card-title>
+                <mat-card-content>
+                  <p><strong>Status:</strong> {{ validationResults['docker'].message }}</p>
+                  <p><strong>Details:</strong> {{ validationResults['docker'].details }}</p>
+                </mat-card-content>
+              </mat-card>
+
+              <mat-card *ngIf="validationResults['msal']" class="detail-card">
+                <mat-card-title>MSAL Details</mat-card-title>
+                <mat-card-content>
+                  <p><strong>Status:</strong> {{ validationResults['msal'].message }}</p>
+                  <details>
+                    <summary>Configuration Details</summary>
+                    <pre>{{ validationResults['msal'].details }}</pre>
+                  </details>
+                </mat-card-content>
+              </mat-card>
+            </div>
+
+            <div class="step-actions">
+              <button mat-raised-button color="primary"
+                      [disabled]="!canProceedToSetup()"
+                      matStepperNext>
+                Proceed to Admin Setup
+              </button>
+            </div>
+          </div>
+        </mat-step>
+
+        <!-- Step 2: Admin User Setup -->
+        <mat-step [completed]="initializationResult?.success">
+          <ng-template matStepLabel>Administrator Setup</ng-template>
+
+          <div class="step-content">
+            <form [formGroup]="setupForm" (ngSubmit)="initializeSystem()">
+              <h3>Create Administrator Account</h3>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Admin Email</mat-label>
+                <input matInput type="email" formControlName="adminEmail" required>
+                <mat-error *ngIf="setupForm.get('adminEmail')?.hasError('required')">
+                  Email is required
+                </mat-error>
+                <mat-error *ngIf="setupForm.get('adminEmail')?.hasError('email')">
+                  Please enter a valid email
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Admin Name</mat-label>
+                <input matInput formControlName="adminName" required>
+                <mat-error *ngIf="setupForm.get('adminName')?.hasError('required')">
+                  Name is required
+                </mat-error>
+                <mat-error *ngIf="setupForm.get('adminName')?.hasError('minlength')">
+                  Name must be at least 2 characters
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Domain</mat-label>
+                <input matInput formControlName="domain" required>
+                <mat-hint>Domain for container subdomains (e.g., mydomain.com)</mat-hint>
+              </mat-form-field>
+
+              <div class="step-actions">
+                <button mat-button matStepperPrevious>Back</button>
+                <button mat-raised-button color="primary"
+                        type="submit"
+                        [disabled]="setupForm.invalid || isInitializing">
+                  <mat-spinner diameter="20" *ngIf="isInitializing"></mat-spinner>
+                  <span *ngIf="!isInitializing">Initialize System</span>
+                  <span *ngIf="isInitializing">Initializing...</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </mat-step>
+
+        <!-- Step 3: Completion -->
+        <mat-step [completed]="initializationResult?.success">
+          <ng-template matStepLabel>Setup Complete</ng-template>
+
+          <div class="step-content" *ngIf="initializationResult">
+            <h3>System Successfully Initialized!</h3>
+
+            <div class="success-info">
+              <mat-icon color="primary" class="large-icon">check_circle</mat-icon>
+              <p>Your DbMaker system is now ready to use.</p>
+            </div>
+
+            <mat-card class="backup-key-card" *ngIf="initializationResult.backupKey">
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon color="warn">security</mat-icon>
+                  Important: Backup Recovery Key
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <p class="warning-text">
+                  <strong>Save this backup key in a secure location!</strong>
+                  You'll need it to recover admin access if needed.
+                </p>
+                <div class="backup-key-container">
+                  <code class="backup-key">{{ initializationResult.backupKey }}</code>
+                  <button mat-icon-button (click)="copyBackupKey()" matTooltip="Copy to clipboard">
+                    <mat-icon>content_copy</mat-icon>
+                  </button>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <div class="setup-summary">
+              <h4>Setup Summary:</h4>
+              <ul>
+                <li *ngIf="initializationResult.adminUserCreated">✓ Administrator account created</li>
+                <li>✓ System configuration saved</li>
+                <li>✓ Backup recovery key generated</li>
+                <li>✓ Docker integration verified</li>
+                <li>✓ Authentication configured</li>
+              </ul>
+            </div>
+
+            <div class="step-actions">
+              <button mat-raised-button color="primary" (click)="completePlainSetup()">
+                Continue to Dashboard
+              </button>
+            </div>
+          </div>
+        </mat-step>
+
+      </mat-stepper>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" *ngIf="isLoading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Checking system status...</p>
+  </div>
+</div>

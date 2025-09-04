@@ -31,7 +31,47 @@ public class ContainerOrchestrator : IContainerOrchestrator
     public ContainerOrchestrator(ILogger<ContainerOrchestrator> logger)
     {
         _logger = logger;
-        _dockerClient = new DockerClientConfiguration().CreateClient();
+        
+        // Try different Docker connection strategies
+        try
+        {
+            // Try default connection first
+            _dockerClient = new DockerClientConfiguration().CreateClient();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to create Docker client with default configuration, trying alternative configs");
+            
+            try
+            {
+                // Try Unix socket for Linux/macOS
+                if (Environment.OSVersion.Platform == PlatformID.Unix)
+                {
+                    _dockerClient = new DockerClientConfiguration(new Uri("unix:///var/run/docker.sock")).CreateClient();
+                }
+                else
+                {
+                    // Try named pipe for Windows
+                    _dockerClient = new DockerClientConfiguration(new Uri("npipe://./pipe/docker_engine")).CreateClient();
+                }
+            }
+            catch (Exception ex2)
+            {
+                _logger.LogError(ex2, "Failed to create Docker client with alternative configurations");
+                
+                // Try TCP connection as last resort
+                try
+                {
+                    _dockerClient = new DockerClientConfiguration(new Uri("tcp://localhost:2375")).CreateClient();
+                }
+                catch (Exception ex3)
+                {
+                    _logger.LogError(ex3, "All Docker connection attempts failed");
+                    throw new InvalidOperationException("Cannot connect to Docker daemon. Please ensure Docker is running and accessible.", ex3);
+                }
+            }
+        }
+        
         _templates = InitializeTemplates();
     }
 
@@ -83,6 +123,17 @@ public class ContainerOrchestrator : IContainerOrchestrator
                 throw new ArgumentException($"Unknown database type: {request.DatabaseType}");
             }
 
+            // Test Docker connectivity first
+            try
+            {
+                await _dockerClient.System.PingAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Docker daemon is not accessible");
+                throw new InvalidOperationException("Docker daemon is not accessible. Please ensure Docker is running.", ex);
+            }
+
             var port = GetAvailablePort();
             var subdomain = GenerateSubdomain(userId, request.Name, request.DatabaseType);
             var containerName = $"dbmaker-{userId}-{request.DatabaseType}-{request.Name}";
@@ -114,6 +165,24 @@ public class ContainerOrchestrator : IContainerOrchestrator
                 {
                     new() { HostPort = port.ToString() }
                 };
+            }
+
+            // Ensure required images are available
+            try
+            {
+                await _dockerClient.Images.CreateImageAsync(
+                    new ImagesCreateParameters
+                    {
+                        FromImage = template.DockerImage.Split(':')[0],
+                        Tag = template.DockerImage.Contains(':') ? template.DockerImage.Split(':')[1] : "latest"
+                    },
+                    null,
+                    new Progress<JSONMessage>(message => _logger.LogDebug("Image pull: {Status}", message.Status))
+                );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to pull image {Image}, assuming it exists locally", template.DockerImage);
             }
 
             // Create container
