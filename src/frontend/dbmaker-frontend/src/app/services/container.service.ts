@@ -1,54 +1,65 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ContainerResponse, CreateContainerRequest, ContainerMonitoringData, DatabaseTemplate } from '../models/container.models';
+import { DbMakerApiClient, ContainersService, TemplatesService, MonitoringService } from '../api-client/DbMakerApiClient';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ContainerService {
-  private readonly baseUrl = 'http://localhost:5021/api';
+  private containersClient: ContainersService;
+  private templatesClient: TemplatesService;
+  private monitoringClient: MonitoringService;
 
-  constructor(private http: HttpClient) {}
+  constructor() {
+    const apiClient = new DbMakerApiClient('http://localhost:5021');
+    this.containersClient = apiClient.containers;
+    this.templatesClient = apiClient.templates;
+    this.monitoringClient = apiClient.monitoring;
+  }
 
   getContainers(): Observable<ContainerResponse[]> {
-    return this.http.get<ContainerResponse[]>(`${this.baseUrl}/containers`);
+    return this.containersClient.getContainers();
   }
 
   getContainer(id: string): Observable<ContainerResponse> {
-    return this.http.get<ContainerResponse>(`${this.baseUrl}/containers/${id}`);
+    return this.containersClient.getContainer(id);
   }
 
   createContainer(request: CreateContainerRequest): Observable<ContainerResponse> {
-    return this.http.post<ContainerResponse>(`${this.baseUrl}/containers`, request);
+    return this.containersClient.createContainer(request);
   }
 
   startContainer(id: string): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/containers/${id}/start`, {});
+    return this.containersClient.startContainer(id);
   }
 
   stopContainer(id: string): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/containers/${id}/stop`, {});
+    return this.containersClient.stopContainer(id);
   }
 
   deleteContainer(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/containers/${id}`);
+    return this.containersClient.deleteContainer(id);
   }
 
   getContainerStats(id: string): Observable<ContainerMonitoringData> {
-    return this.http.get<ContainerMonitoringData>(`${this.baseUrl}/containers/${id}/stats`);
+    return this.monitoringClient.getContainerStats(id);
   }
 
   getTemplates(): Observable<DatabaseTemplate[]> {
-    return this.http.get<DatabaseTemplate[]>(`${this.baseUrl}/templates`);
+    return this.templatesClient.getTemplates();
   }
 
   getTemplate(type: string): Observable<DatabaseTemplate> {
-    return this.http.get<DatabaseTemplate>(`${this.baseUrl}/templates/${type}`);
+    return this.templatesClient.getTemplate(type);
+  }
+
+  getMonitoringSummary(): Observable<any> {
+    return this.monitoringClient.getMonitoringSummary();
   }
 
   // Server-Sent Events for real-time monitoring (requires auth)
   getMonitoringStream(): EventSource {
-    return new EventSource(`${this.baseUrl}/monitoring/events`);
+    return new EventSource('http://localhost:5021/api/monitoring/events');
   }
 }

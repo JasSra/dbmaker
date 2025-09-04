@@ -1,21 +1,24 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { DbMakerApiClient, UsersService } from '../api-client/DbMakerApiClient';
 import { User } from '../models/container.models';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
-  private readonly baseUrl = 'http://localhost:5021/api';
+  private usersClient: UsersService;
 
-  constructor(private http: HttpClient) {}
+  constructor() {
+    const apiClient = new DbMakerApiClient('http://localhost:5021');
+    this.usersClient = apiClient.users;
+  }
 
   getCurrentUser(): Observable<User> {
-  return this.http.get<User>(`${this.baseUrl}/users/me`);
+    return this.usersClient.getCurrentUser();
   }
 
   getUserStats(): Observable<any> {
-  return this.http.get<any>(`${this.baseUrl}/users/me/stats`);
+    return this.usersClient.getUserStats();
   }
 }

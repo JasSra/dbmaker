@@ -1,39 +1,44 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { DbMakerApiClient, SetupService as GeneratedSetupService, MonitoringService } from '../api-client/DbMakerApiClient';
 import { SetupStatus, ValidationResult, InitializeSystemRequest, InitializationResult, MonitoringSummary, ContainerTestResult } from '../models/setup.models';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SetupService {
-  private readonly baseUrl = 'http://localhost:5021/api';
+  private setupClient: GeneratedSetupService;
+  private monitoringClient: MonitoringService;
 
-  constructor(private http: HttpClient) {}
+  constructor() {
+    const apiClient = new DbMakerApiClient('http://localhost:5021');
+    this.setupClient = apiClient.setup;
+    this.monitoringClient = apiClient.monitoring;
+  }
 
   // Setup endpoints
   getSetupStatus(): Observable<SetupStatus> {
-    return this.http.get<SetupStatus>(`${this.baseUrl}/setup/status`);
+    return this.setupClient.getSetupStatus();
   }
 
   validateDocker(): Observable<ValidationResult> {
-    return this.http.get<ValidationResult>(`${this.baseUrl}/setup/validate/docker`);
+    return this.setupClient.validateDocker();
   }
 
   validateMsal(): Observable<ValidationResult> {
-    return this.http.get<ValidationResult>(`${this.baseUrl}/setup/validate/msal`);
+    return this.setupClient.validateMsal();
   }
 
   initializeSystem(request: InitializeSystemRequest): Observable<InitializationResult> {
-    return this.http.post<InitializationResult>(`${this.baseUrl}/setup/initialize`, request);
+    return this.setupClient.initializeSystem(request);
   }
 
   // Monitoring endpoints
   getMonitoringSummary(): Observable<MonitoringSummary> {
-    return this.http.get<MonitoringSummary>(`${this.baseUrl}/monitoring/summary`);
+    return this.monitoringClient.getMonitoringSummary();
   }
 
   testContainer(containerId: string): Observable<ContainerTestResult> {
-    return this.http.post<ContainerTestResult>(`${this.baseUrl}/monitoring/test/${containerId}`, {});
+    return this.monitoringClient.testContainer(containerId);
   }
 }
