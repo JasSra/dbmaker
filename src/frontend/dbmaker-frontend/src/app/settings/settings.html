@@ -1,0 +1,229 @@
+<div class="settings-container">
+  <mat-card class="settings-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>settings</mat-icon>
+        StarkLink Settings
+      </mat-card-title>
+      <mat-card-subtitle>Configure your container intelligence platform</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- UI Settings -->
+      <mat-expansion-panel class="settings-section">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon>palette</mat-icon>
+            User Interface
+          </mat-panel-title>
+          <mat-panel-description>
+            Customize the look and feel
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <div class="settings-group">
+          <mat-slide-toggle
+            [checked]="isDarkMode"
+            (change)="onDarkModeChange($event)"
+            color="primary">
+            <span class="toggle-label">
+              <mat-icon>{{ isDarkMode ? 'dark_mode' : 'light_mode' }}</mat-icon>
+              Dark Mode
+            </span>
+          </mat-slide-toggle>
+
+          <mat-form-field class="setting-field">
+            <mat-label>Refresh Interval (seconds)</mat-label>
+            <input matInput
+                   type="number"
+                   [(ngModel)]="refreshInterval"
+                   (change)="updateRefreshInterval()"
+                   min="5"
+                   max="300">
+          </mat-form-field>
+
+          <mat-slide-toggle
+            [(ngModel)]="enableAnimations"
+            (change)="updateAnimations()"
+            color="primary">
+            <span class="toggle-label">
+              <mat-icon>animation</mat-icon>
+              Enable Animations
+            </span>
+          </mat-slide-toggle>
+        </div>
+      </mat-expansion-panel>
+
+      <!-- Container Settings -->
+      <mat-expansion-panel class="settings-section">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon>view_list</mat-icon>
+            Container Visibility
+          </mat-panel-title>
+          <mat-panel-description>
+            Control which containers are displayed
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <div class="settings-group">
+          <mat-slide-toggle
+            [(ngModel)]="showAllContainers"
+            (change)="updateShowAllContainers()"
+            color="primary">
+            <span class="toggle-label">
+              <mat-icon>visibility</mat-icon>
+              Show All Docker Containers
+            </span>
+            <div class="toggle-description">
+              Display all containers on your system, not just managed ones
+            </div>
+          </mat-slide-toggle>
+
+          <mat-slide-toggle
+            [(ngModel)]="showSystemContainers"
+            (change)="updateShowSystemContainers()"
+            color="primary">
+            <span class="toggle-label">
+              <mat-icon>computer</mat-icon>
+              Show System Containers
+            </span>
+            <div class="toggle-description">
+              Include Docker system and infrastructure containers
+            </div>
+          </mat-slide-toggle>
+
+          <mat-slide-toggle
+            [(ngModel)]="enableVisualization"
+            (change)="updateVisualization()"
+            color="primary">
+            <span class="toggle-label">
+              <mat-icon>analytics</mat-icon>
+              Enable Visualization Dashboard
+            </span>
+            <div class="toggle-description">
+              Show performance graphs and analytics
+            </div>
+          </mat-slide-toggle>
+        </div>
+      </mat-expansion-panel>
+
+      <!-- Docker Settings -->
+      <mat-expansion-panel class="settings-section">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon>settings_applications</mat-icon>
+            Docker Configuration
+          </mat-panel-title>
+          <mat-panel-description>
+            Docker host and maintenance settings
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <div class="settings-group">
+          <mat-form-field class="setting-field">
+            <mat-label>Docker Host</mat-label>
+            <input matInput
+                   [(ngModel)]="dockerHost"
+                   (change)="updateDockerHost()"
+                   placeholder="npipe://./pipe/docker_engine">
+          </mat-form-field>
+
+          <mat-slide-toggle
+            [(ngModel)]="enableMaintenance"
+            (change)="updateMaintenance()"
+            color="primary">
+            <span class="toggle-label">
+              <mat-icon>build</mat-icon>
+              Enable Maintenance Mode
+            </span>
+            <div class="toggle-description">
+              Automatic cleanup and system maintenance
+            </div>
+          </mat-slide-toggle>
+
+          <mat-form-field class="setting-field">
+            <mat-label>Maintenance Interval (seconds)</mat-label>
+            <input matInput
+                   type="number"
+                   [(ngModel)]="maintenanceInterval"
+                   (change)="updateMaintenanceInterval()"
+                   min="300"
+                   max="86400">
+          </mat-form-field>
+        </div>
+      </mat-expansion-panel>
+
+      <!-- Nginx Settings -->
+      <mat-expansion-panel class="settings-section">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon>router</mat-icon>
+            Dynamic Subdomains
+          </mat-panel-title>
+          <mat-panel-description>
+            Nginx routing and subdomain configuration
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <div class="settings-group">
+          <mat-slide-toggle
+            [(ngModel)]="enableDynamicSubdomains"
+            (change)="updateDynamicSubdomains()"
+            color="primary">
+            <span class="toggle-label">
+              <mat-icon>hub</mat-icon>
+              Enable Dynamic Subdomains
+            </span>
+            <div class="toggle-description">
+              Automatically route subdomains to container ports
+            </div>
+          </mat-slide-toggle>
+
+          <mat-form-field class="setting-field">
+            <mat-label>Base Domain</mat-label>
+            <input matInput
+                   [(ngModel)]="baseDomain"
+                   (change)="updateBaseDomain()"
+                   placeholder="starklink.local">
+          </mat-form-field>
+
+          <mat-form-field class="setting-field">
+            <mat-label>Nginx Listen Port</mat-label>
+            <input matInput
+                   type="number"
+                   [(ngModel)]="nginxPort"
+                   (change)="updateNginxPort()"
+                   min="1024"
+                   max="65535">
+          </mat-form-field>
+
+          <mat-slide-toggle
+            [(ngModel)]="useGuidSubdomains"
+            (change)="updateGuidSubdomains()"
+            color="primary">
+            <span class="toggle-label">
+              <mat-icon>fingerprint</mat-icon>
+              Use GUID-based Subdomains
+            </span>
+            <div class="toggle-description">
+              Generate unique subdomains automatically
+            </div>
+          </mat-slide-toggle>
+        </div>
+      </mat-expansion-panel>
+    </mat-card-content>
+
+    <mat-card-actions>
+      <button mat-raised-button color="primary" (click)="saveSettings()" [disabled]="saving">
+        <mat-icon>save</mat-icon>
+        {{ saving ? 'Saving...' : 'Save Settings' }}
+      </button>
+
+      <button mat-button (click)="resetToDefaults()">
+        <mat-icon>refresh</mat-icon>
+        Reset to Defaults
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

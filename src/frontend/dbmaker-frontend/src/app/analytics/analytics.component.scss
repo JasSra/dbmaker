@@ -1,0 +1,355 @@
+.analytics-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.analytics-header {
+  text-align: center;
+  margin-bottom: 32px;
+
+  h1 {
+    margin: 0 0 8px 0;
+  font-size: 2.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  }
+
+  p {
+    margin: 0;
+  color: var(--text-secondary);
+    font-size: 1.125rem;
+  }
+}
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 32px;
+
+  .overview-card {
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+
+      mat-icon {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+        color: var(--text-secondary);
+      }
+
+      h3 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+      }
+    }
+
+    .metric-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+
+    mat-progress-bar {
+      height: 8px;
+      border-radius: 4px;
+    }
+  }
+}
+
+.analytics-tabs {
+  .mat-mdc-tab-body-wrapper {
+    padding-top: 24px;
+  }
+
+  .mat-mdc-tab-header {
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .mdc-tab__text-label {
+    color: var(--text-primary);
+  }
+
+  .mdc-tab--active .mdc-tab__text-label {
+    color: var(--text-primary);
+  }
+
+  .mdc-tab-indicator__content--underline {
+    border-color: var(--accent-color) !important;
+  }
+}
+
+.tab-content {
+  min-height: 500px;
+}
+
+// Container Metrics Styles
+.metrics-table {
+  width: 100%;
+  margin-top: 16px;
+
+  .container-name {
+    mat-chip {
+      font-size: 0.875rem;
+    }
+  }
+
+  .metric-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 120px;
+
+    span {
+      font-size: 0.875rem;
+      font-weight: 500;
+  color: var(--text-primary);
+    }
+
+    mat-progress-bar {
+      height: 6px;
+      border-radius: 3px;
+    }
+  }
+
+  .network-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .network-in {
+  color: var(--success-color);
+      font-size: 0.875rem;
+    }
+
+    .network-out {
+  color: var(--warning-color);
+      font-size: 0.875rem;
+    }
+  }
+}
+
+// Logs Styles
+.logs-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  .container-selector {
+    h3 {
+      margin: 0 0 16px 0;
+    }
+
+    .container-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+
+      mat-chip-option {
+        cursor: pointer;
+
+        mat-icon {
+          margin-right: 8px;
+        }
+      }
+    }
+  }
+
+  .logs-display {
+    .logs-content {
+      background: var(--card-bg);
+      border-radius: 8px;
+      padding: 16px;
+      max-height: 400px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+
+      .log-entry {
+        margin: 0 0 4px 0;
+        font-size: 0.875rem;
+        line-height: 1.4;
+        white-space: pre-wrap;
+        color: var(--text-primary);
+
+        &:hover {
+          background: var(--bg-secondary);
+        }
+      }
+    }
+
+    .logs-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+  }
+}
+
+// Monitoring Charts
+.monitoring-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+
+  .chart-card {
+    min-height: 250px;
+
+    .chart-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+
+      mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        margin-bottom: 16px;
+  color: var(--text-secondary);
+      }
+
+      p {
+        margin: 8px 0;
+        font-size: 1.125rem;
+        font-weight: 500;
+  color: var(--text-primary);
+      }
+
+      .mini-chart {
+        display: flex;
+        align-items: end;
+        gap: 2px;
+        height: 60px;
+        margin-top: 16px;
+
+        .chart-bar {
+          width: 8px;
+          background: linear-gradient(to top, var(--accent-color), rgba(102, 126, 234, 0.6));
+          border-radius: 2px 2px 0 0;
+          min-height: 2px;
+          transition: height 0.3s ease;
+        }
+      }
+
+      mat-progress-bar {
+        width: 100%;
+        margin-top: 16px;
+      }
+    }
+  }
+}
+
+// Docker Info
+.info-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+
+  .info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+
+    strong {
+      color: var(--text-primary);
+    }
+
+    span {
+      color: var(--text-secondary);
+      font-family: 'Courier New', monospace;
+    }
+  }
+}
+
+// Loading States
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  gap: 16px;
+
+  p {
+    margin: 0;
+  color: var(--text-secondary);
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .analytics-container {
+    padding: 16px;
+
+    .analytics-header {
+      h1 {
+        font-size: 2rem;
+      }
+    }
+
+    .overview-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .monitoring-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .logs-section {
+      .container-chips {
+        justify-content: center;
+      }
+
+      .logs-display {
+        .logs-content {
+          font-size: 0.75rem;
+        }
+
+        .logs-actions {
+          flex-direction: column;
+        }
+      }
+    }
+
+    .metrics-table {
+      font-size: 0.875rem;
+
+      .metric-cell {
+        min-width: 100px;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .analytics-container {
+    .analytics-header {
+      h1 {
+        font-size: 1.75rem;
+      }
+
+      p {
+        font-size: 1rem;
+      }
+    }
+
+    .overview-grid {
+      .overview-card {
+        .metric-value {
+          font-size: 2rem;
+        }
+      }
+    }
+  }
+}

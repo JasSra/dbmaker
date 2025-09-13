@@ -1,0 +1,314 @@
+.job-status-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.job-card {
+  margin-bottom: 16px;
+  transition: all 0.3s ease;
+
+  &.running {
+    border-left: 4px solid var(--accent-color);
+    box-shadow: 0 4px 12px var(--shadow-color);
+  }
+
+  &.completed {
+    border-left: 4px solid var(--success-color);
+  }
+
+  &.failed {
+    border-left: 4px solid var(--error-color);
+  }
+
+  mat-card-header {
+    mat-card-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.2rem;
+
+      mat-icon {
+        &.spin {
+          animation: spin 2s linear infinite;
+        }
+      }
+    }
+
+    mat-card-subtitle {
+      color: var(--text-secondary);
+      margin-top: 8px;
+    }
+  }
+}
+
+.progress-section {
+  margin-bottom: 24px;
+
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+
+    .progress-label {
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .progress-percentage {
+      font-weight: 600;
+      color: var(--accent-color);
+    }
+  }
+
+  mat-progress-bar {
+    height: 8px;
+    border-radius: 4px;
+  }
+}
+
+.status-section {
+  margin-bottom: 20px;
+
+  mat-chip-set {
+    display: flex;
+    gap: 8px;
+
+    mat-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      &.status-queued {
+        background-color: var(--bg-secondary);
+        color: var(--text-secondary);
+      }
+
+      &.status-running {
+        background-color: var(--accent-color);
+        color: white;
+      }
+
+      &.status-completed {
+        background-color: var(--success-color);
+        color: white;
+      }
+
+      &.status-failed {
+        background-color: var(--error-color);
+        color: white;
+      }
+
+      &.status-cancelled {
+        background-color: var(--text-tertiary);
+        color: white;
+      }
+
+      &.type-chip {
+        background-color: var(--primary-color);
+        color: white;
+      }
+    }
+  }
+}
+
+.steps-panel {
+  margin-bottom: 20px;
+
+  mat-expansion-panel-header {
+    mat-panel-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    mat-panel-description {
+      color: var(--text-secondary);
+    }
+  }
+
+  .steps-list {
+    padding: 0;
+
+    mat-list-item {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-color);
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &.step-pending {
+        opacity: 0.6;
+      }
+
+      &.step-running {
+        background-color: var(--bg-secondary);
+
+        mat-icon {
+          color: var(--accent-color);
+
+          &.spin {
+            animation: spin 2s linear infinite;
+          }
+        }
+      }
+
+      &.step-completed {
+        mat-icon {
+          color: var(--success-color);
+        }
+      }
+
+      &.step-failed {
+        mat-icon {
+          color: var(--error-color);
+        }
+      }
+
+      .step-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+        min-width: 120px;
+
+        .step-progress {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          width: 100%;
+
+          mat-progress-bar {
+            flex: 1;
+            height: 4px;
+          }
+
+          .step-percentage {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            min-width: 35px;
+            text-align: right;
+          }
+        }
+
+        .step-time {
+          font-size: 0.75rem;
+          color: var(--text-tertiary);
+        }
+
+        .step-error {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 0.75rem;
+          color: var(--error-color);
+
+          mat-icon {
+            font-size: 14px;
+            width: 14px;
+            height: 14px;
+          }
+        }
+      }
+    }
+  }
+}
+
+.error-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background-color: var(--bg-secondary);
+  border-left: 4px solid var(--error-color);
+  border-radius: 4px;
+  margin-bottom: 20px;
+
+  mat-icon {
+    color: var(--error-color);
+  }
+
+  span {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+}
+
+.timing-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+
+  .time-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+mat-card-actions {
+  display: flex;
+  gap: 8px;
+  padding: 16px 24px;
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .job-status-container {
+    padding: 0 16px;
+  }
+
+  .job-card {
+    mat-card-content {
+      padding: 16px !important;
+    }
+  }
+
+  .status-section mat-chip-set {
+    flex-wrap: wrap;
+  }
+
+  .timing-section {
+    .time-item {
+      font-size: 0.8rem;
+    }
+  }
+
+  mat-card-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+
+    button {
+      flex: 1;
+      min-width: 120px;
+    }
+  }
+}

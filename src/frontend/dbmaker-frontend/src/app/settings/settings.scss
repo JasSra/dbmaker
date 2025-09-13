@@ -1,0 +1,134 @@
+.settings-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  .settings-card {
+    margin-bottom: 20px;
+  }
+
+  .settings-title {
+    margin-bottom: 20px;
+  }
+
+  .settings-section {
+    .mat-expansion-panel-header {
+      padding: 0 16px;
+    }
+
+    .mat-expansion-panel-body {
+      padding: 16px;
+    }
+
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .setting-label {
+        flex: 1;
+        margin-right: 16px;
+
+        .setting-title {
+          font-weight: 500;
+          margin-bottom: 4px;
+        }
+
+        .setting-description {
+          font-size: 0.875rem;
+          color: #666;
+          margin: 0;
+        }
+      }
+
+      .setting-control {
+        flex-shrink: 0;
+
+        mat-form-field {
+          width: 200px;
+        }
+      }
+    }
+  }
+
+  .actions-section {
+    margin-top: 24px;
+    display: flex;
+    gap: 16px;
+    justify-content: flex-end;
+
+    .mat-mdc-raised-button {
+      min-width: 120px;
+    }
+
+    .save-button {
+      &[disabled] {
+        opacity: 0.6;
+      }
+    }
+  }
+}
+
+// Dark theme overrides for settings
+body.dark-theme {
+  .settings-container {
+    .setting-row {
+      .setting-label {
+        .setting-description {
+          color: #bbb;
+        }
+      }
+    }
+  }
+}
+
+// Snackbar styles
+::ng-deep .success-snackbar {
+  .mat-mdc-snack-bar-container {
+    background-color: #4caf50 !important;
+    color: white !important;
+  }
+}
+
+::ng-deep .error-snackbar {
+  .mat-mdc-snack-bar-container {
+    background-color: #f44336 !important;
+    color: white !important;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .settings-container {
+    padding: 16px;
+
+    .settings-section {
+      .setting-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+
+        .setting-control {
+          width: 100%;
+
+          mat-form-field {
+            width: 100%;
+          }
+        }
+      }
+    }
+
+    .actions-section {
+      flex-direction: column;
+
+      .mat-mdc-raised-button {
+        width: 100%;
+      }
+    }
+  }
+}

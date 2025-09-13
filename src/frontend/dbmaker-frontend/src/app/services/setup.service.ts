@@ -1,44 +1,35 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { DbMakerApiClient, SetupService as GeneratedSetupService, MonitoringService } from '../api-client/DbMakerApiClient';
-import { SetupStatus, ValidationResult, InitializeSystemRequest, InitializationResult, MonitoringSummary, ContainerTestResult } from '../models/setup.models';
+import { Observable, from } from 'rxjs';
+import type { SetupStatus, ValidationResult, InitializeSystemRequest, InitializationResult, MonitoringSummary, ContainerTestResult } from '../../../api/consolidated';
+import { SetupService as ApiSetupService, MonitoringService as ApiMonitoringService } from '../../../api/consolidated';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SetupService {
-  private setupClient: GeneratedSetupService;
-  private monitoringClient: MonitoringService;
-
-  constructor() {
-    const apiClient = new DbMakerApiClient('http://localhost:5021');
-    this.setupClient = apiClient.setup;
-    this.monitoringClient = apiClient.monitoring;
-  }
-
   // Setup endpoints
   getSetupStatus(): Observable<SetupStatus> {
-    return this.setupClient.getSetupStatus();
+  return from(ApiSetupService.getApiSetupStatus());
   }
 
   validateDocker(): Observable<ValidationResult> {
-    return this.setupClient.validateDocker();
+  return from(ApiSetupService.getApiSetupValidateDocker());
   }
 
   validateMsal(): Observable<ValidationResult> {
-    return this.setupClient.validateMsal();
+  return from(ApiSetupService.getApiSetupValidateMsal());
   }
 
   initializeSystem(request: InitializeSystemRequest): Observable<InitializationResult> {
-    return this.setupClient.initializeSystem(request);
+  return from(ApiSetupService.postApiSetupInitialize(request));
   }
 
   // Monitoring endpoints
   getMonitoringSummary(): Observable<MonitoringSummary> {
-    return this.monitoringClient.getMonitoringSummary();
+  return from(ApiMonitoringService.getApiMonitoringSummary());
   }
 
   testContainer(containerId: string): Observable<ContainerTestResult> {
-    return this.monitoringClient.testContainer(containerId);
+  return from(ApiMonitoringService.postApiMonitoringTest(containerId));
   }
 }

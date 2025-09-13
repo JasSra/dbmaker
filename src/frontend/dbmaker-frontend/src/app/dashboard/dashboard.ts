@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -7,9 +7,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { Subject, takeUntil } from 'rxjs';
+import { MsalService } from '@azure/msal-angular';
 import { ContainerService } from '../services/container.service';
 import { UserService } from '../services/user.service';
-import { ContainerResponse, ContainerMonitoringData, ContainerStatus } from '../models/container.models';
+import { ThemeService, ThemeConfig } from '../services/theme.service';
+import { type ContainerResponse, type ContainerMonitoringData } from '../../../api/consolidated';
 
 @Component({
   selector: 'app-dashboard',
@@ -27,40 +30,64 @@ import { ContainerResponse, ContainerMonitoringData, ContainerStatus } from '../
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss'
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   containers: ContainerResponse[] = [];
   userStats: any = {};
   monitoring: ContainerMonitoringData[] = [];
-  demoUser = {
-    name: 'Demo User',
-    email: 'demo@dbmaker.local'
-  };
+  currentTheme: ThemeConfig;
+  isDarkMode = false;
+
+  private destroy$ = new Subject<void>();
 
   constructor(
     private containerService: ContainerService,
     private userService: UserService,
-    private snackBar: MatSnackBar
-  ) {}
+    private themeService: ThemeService,
+    private snackBar: MatSnackBar,
+  private msalService: MsalService,
+  private cdr: ChangeDetectorRef
+  ) {
+    this.currentTheme = this.themeService.getCurrentTheme();
+    this.isDarkMode = this.currentTheme.isDarkMode;
+  }
 
   ngOnInit() {
     this.loadDashboardData();
     this.setupMonitoring();
+
+    // Subscribe to theme changes
+    this.themeService.theme$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(theme => {
+        this.currentTheme = theme;
+        this.isDarkMode = theme.isDarkMode;
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private loadDashboardData() {
     // Try to load data from API, with fallback to demo data
     this.containerService.getContainers().subscribe({
       next: (containers) => {
-        this.containers = containers;
+        this.containers = containers.map(c => ({
+          ...c,
+          status: this.normalizeStatus((c as any).status)
+        })) as any;
+        this.cdr.detectChanges();
       },
       error: (error) => {
   console.warn('Failed to load containers from API:', error);
       }
     });
 
-    this.userService.getUserStats().subscribe({
+  this.userService.getUserStats().subscribe({
       next: (stats) => {
         this.userStats = stats;
+    this.cdr.detectChanges();
       },
       error: (error) => {
   console.warn('Failed to load user stats from API:', error);
@@ -69,7 +96,8 @@ export class DashboardComponent implements OnInit {
   }
 
   private setupMonitoring() {
-    // For demo: Skip monitoring setup to avoid EventSource errors
+    // TODO: Implement real-time monitoring via Server-Sent Events or WebSocket
+    // For now, initialize empty monitoring array
     this.monitoring = [];
   }
 
@@ -79,18 +107,19 @@ export class DashboardComponent implements OnInit {
 
   getRunningContainers(): number {
     return this.containers.filter(container =>
-      container.status?.toLowerCase() === 'running'
+      this.normalizeStatus((container as any).status).toLowerCase() === 'running'
     ).length;
   }
 
   getRecentContainers(): ContainerResponse[] {
     return this.containers
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .sort((a, b) => new Date(b.createdAt ?? '').getTime() - new Date(a.createdAt ?? '').getTime())
       .slice(0, 5);
   }
 
-  getContainerIcon(databaseType: string): string {
-    switch (databaseType.toLowerCase()) {
+  getContainerIcon(databaseType: string | null | undefined): string {
+    const dt = (databaseType ?? '').toLowerCase();
+    switch (dt) {
       case 'postgresql':
         return 'data_object';
       case 'redis':
@@ -104,8 +133,9 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  getStatusIcon(status: string): string {
-    switch (status?.toLowerCase()) {
+  getStatusIcon(status: any): string {
+    const s = this.normalizeStatus(status).toLowerCase();
+    switch (s) {
       case 'running':
         return 'play_circle';
       case 'stopped':
@@ -119,17 +149,24 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  copyConnectionString(connectionString: string): void {
+  private normalizeStatus(status: any): string {
+    if (typeof status === 'string') return status;
+    const map: Record<number, string> = { 0: 'Creating', 1: 'Running', 2: 'Stopped', 3: 'Failed', 4: 'Removing' };
+    return map[Number(status)] ?? 'Unknown';
+  }
+
+  copyConnectionString(connectionString: string | null | undefined): void {
+    const text = connectionString ?? '';
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(connectionString).then(() => {
+      navigator.clipboard.writeText(text).then(() => {
         this.snackBar.open('Connection string copied to clipboard', 'Close', {
           duration: 2000
         });
       }).catch(() => {
-        this.fallbackCopyTextToClipboard(connectionString);
+        this.fallbackCopyTextToClipboard(text);
       });
     } else {
-      this.fallbackCopyTextToClipboard(connectionString);
+      this.fallbackCopyTextToClipboard(text);
     }
   }
 
@@ -202,7 +239,8 @@ export class DashboardComponent implements OnInit {
   }
 
   logout() {
-    // Demo logout - just show alert for now
-    this.snackBar.open('Demo mode - logout functionality disabled', 'Close', { duration: 3000 });
+    this.msalService.logoutRedirect({
+      postLogoutRedirectUri: window.location.origin
+    });
   }
 }

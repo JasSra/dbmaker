@@ -3,7 +3,8 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SetupService } from '../services/setup.service';
-import { SetupStatus, ValidationResult, InitializeSystemRequest, InitializationResult } from '../models/setup.models';
+// Use generated API models (they have optional fields) instead of strict local interfaces
+import type { SetupStatus, ValidationResult, InitializeSystemRequest, InitializationResult } from '../../../api/consolidated';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -15,6 +16,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-setup',
@@ -38,9 +40,12 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   styleUrls: ['./setup.component.scss']
 })
 export class SetupComponent implements OnInit {
+  // Expose environment to template for debug-gated UI
+  public environment = environment;
   setupForm!: FormGroup;
   setupStatus: SetupStatus | null = null;
-  validationResults: { [key: string]: ValidationResult } = {};
+  // Allow entries to be undefined so optional chaining in template is valid
+  validationResults: Record<string, ValidationResult | undefined> = {};
   isLoading = false;
   isInitializing = false;
   currentStep = 0;
@@ -70,9 +75,9 @@ export class SetupComponent implements OnInit {
   async checkSetupStatus(): Promise<void> {
     this.isLoading = true;
     try {
-      this.setupStatus = await this.setupService.getSetupStatus().toPromise() || null;
+  this.setupStatus = await this.setupService.getSetupStatus().toPromise() || null;
 
-      if (this.setupStatus?.systemReady) {
+  if (this.setupStatus?.systemReady) {
         this.snackBar.open('System is already configured!', 'Close', { duration: 3000 });
         this.router.navigate(['/dashboard']);
         return;
@@ -110,10 +115,10 @@ export class SetupComponent implements OnInit {
         { isValid: false, message: 'Failed to validate Docker', details: '' };
 
       const result = this.validationResults['docker'];
-      if (result.isValid) {
+      if (result?.isValid) {
         this.snackBar.open('Docker validation successful!', 'Close', { duration: 3000 });
       } else {
-        this.snackBar.open(`Docker validation failed: ${result.message}`, 'Close', { duration: 5000 });
+        this.snackBar.open(`Docker validation failed: ${result?.message ?? 'Unknown error'}`, 'Close', { duration: 5000 });
       }
     } catch (error) {
       console.error('Docker validation failed:', error);
@@ -130,10 +135,10 @@ export class SetupComponent implements OnInit {
         { isValid: false, message: 'Failed to validate MSAL', details: '' };
 
       const result = this.validationResults['msal'];
-      if (result.isValid) {
+      if (result?.isValid) {
         this.snackBar.open('MSAL validation successful!', 'Close', { duration: 3000 });
       } else {
-        this.snackBar.open(`MSAL validation failed: ${result.message}`, 'Close', { duration: 5000 });
+        this.snackBar.open(`MSAL validation failed: ${result?.message ?? 'Unknown error'}`, 'Close', { duration: 5000 });
       }
     } catch (error) {
       console.error('MSAL validation failed:', error);
@@ -144,9 +149,9 @@ export class SetupComponent implements OnInit {
   }
 
   canProceedToSetup(): boolean {
-    return this.validationResults['docker']?.isValid &&
-           this.validationResults['msal']?.isValid &&
-           this.setupStatus?.databaseConfigured === true;
+    return (this.validationResults['docker']?.isValid ?? false) &&
+           (this.validationResults['msal']?.isValid ?? false) &&
+           (this.setupStatus?.databaseConfigured === true);
   }
 
   async initializeSystem(): Promise<void> {

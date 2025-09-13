@@ -3,40 +3,43 @@ using Docker.DotNet.Models;
 using DbMaker.Shared.Models;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
+using System.Text;
 using DockerContainerStatus = Docker.DotNet.Models.ContainerStatus;
 using AppContainerStatus = DbMaker.Shared.Models.ContainerStatus;
 
 namespace DbMaker.Shared.Services;
 
-public interface IContainerOrchestrator
-{
-    Task<DatabaseContainer> CreateContainerAsync(string userId, CreateContainerRequest request);
-    Task<bool> StartContainerAsync(string containerId);
-    Task<bool> StopContainerAsync(string containerId);
-    Task<bool> RemoveContainerAsync(string containerId);
-    Task<ContainerMonitoringData?> GetContainerStatsAsync(string containerId);
-    Task<List<ContainerMonitoringData>> GetAllContainerStatsAsync();
-    int GetAvailablePort();
-    string GenerateSubdomain(string userId, string containerName, string databaseType);
-}
-
 public class ContainerOrchestrator : IContainerOrchestrator
 {
-    private readonly DockerClient _dockerClient;
+    private DockerClient? _dockerClient;
     private readonly ILogger<ContainerOrchestrator> _logger;
     private readonly ConcurrentDictionary<int, bool> _usedPorts = new();
     private readonly Dictionary<string, DatabaseTemplate> _templates;
     private int _currentPortStart = 10000;
+    private bool _dockerConnectionTested = false;
+    private readonly string _nginxConfigPath = @"c:\dev\DbMaker\nginx\conf.d\dynamic-upstreams.conf";
 
     public ContainerOrchestrator(ILogger<ContainerOrchestrator> logger)
     {
         _logger = logger;
-        
-        // Try different Docker connection strategies
+        _templates = InitializeTemplates();
+        LoadExistingPortMappings();
+    }
+
+    private async Task<DockerClient> GetDockerClientAsync()
+    {
+        if (_dockerClient != null && _dockerConnectionTested)
+        {
+            return _dockerClient;
+        }
+
         try
         {
             // Try default connection first
             _dockerClient = new DockerClientConfiguration().CreateClient();
+            await _dockerClient.System.PingAsync();
+            _dockerConnectionTested = true;
+            return _dockerClient;
         }
         catch (Exception ex)
         {
@@ -44,35 +47,74 @@ public class ContainerOrchestrator : IContainerOrchestrator
             
             try
             {
-                // Try Unix socket for Linux/macOS
-                if (Environment.OSVersion.Platform == PlatformID.Unix)
+                // Try named pipe for Windows
+                if (Environment.OSVersion.Platform != PlatformID.Unix)
                 {
-                    _dockerClient = new DockerClientConfiguration(new Uri("unix:///var/run/docker.sock")).CreateClient();
+                    _dockerClient = new DockerClientConfiguration(new Uri("npipe://./pipe/docker_engine")).CreateClient();
+                    await _dockerClient.System.PingAsync();
+                    _dockerConnectionTested = true;
+                    return _dockerClient;
                 }
                 else
                 {
-                    // Try named pipe for Windows
-                    _dockerClient = new DockerClientConfiguration(new Uri("npipe://./pipe/docker_engine")).CreateClient();
+                    // Try Unix socket for Linux/macOS
+                    _dockerClient = new DockerClientConfiguration(new Uri("unix:///var/run/docker.sock")).CreateClient();
+                    await _dockerClient.System.PingAsync();
+                    _dockerConnectionTested = true;
+                    return _dockerClient;
                 }
             }
             catch (Exception ex2)
             {
-                _logger.LogError(ex2, "Failed to create Docker client with alternative configurations");
-                
-                // Try TCP connection as last resort
-                try
+                _logger.LogError(ex2, "All Docker connection attempts failed");
+                throw new InvalidOperationException("Cannot connect to Docker daemon. Please ensure Docker is running and accessible.", ex2);
+            }
+        }
+    }
+
+    private async void LoadExistingPortMappings()
+    {
+        try
+        {
+            // Load existing Docker container ports to avoid conflicts
+            await LoadDockerPortMappings();
+            _logger.LogInformation("Initialized port mapping system with existing Docker ports");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to initialize port mappings, will check availability dynamically");
+        }
+    }
+
+    private async Task LoadDockerPortMappings()
+    {
+        try
+        {
+            var dockerClient = await GetDockerClientAsync();
+            var containers = await dockerClient.Containers.ListContainersAsync(new ContainersListParameters
+            {
+                All = true // Include both running and stopped containers
+            });
+
+            foreach (var container in containers)
+            {
+                if (container.Ports != null)
                 {
-                    _dockerClient = new DockerClientConfiguration(new Uri("tcp://localhost:2375")).CreateClient();
-                }
-                catch (Exception ex3)
-                {
-                    _logger.LogError(ex3, "All Docker connection attempts failed");
-                    throw new InvalidOperationException("Cannot connect to Docker daemon. Please ensure Docker is running and accessible.", ex3);
+                    foreach (var port in container.Ports)
+                    {
+                        if (port.PublicPort > 0 && port.PublicPort >= _currentPortStart)
+                        {
+                            _usedPorts.TryAdd((int)port.PublicPort, true);
+                            _logger.LogDebug("Marked port {Port} as used (existing Docker container)", port.PublicPort);
+                        }
+                    }
                 }
             }
         }
-        
-        _templates = InitializeTemplates();
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to load existing Docker port mappings");
+        }
     }
 
     private Dictionary<string, DatabaseTemplate> InitializeTemplates()
@@ -103,7 +145,7 @@ public class ContainerOrchestrator : IContainerOrchestrator
                 DefaultEnvironment = new Dictionary<string, string>
                 {
                     ["POSTGRES_DB"] = "userdb",
-                    ["POSTGRES_USER"] = "dbuser",
+                    ["POSTGRES_USER"] = "admin",
                     ["POSTGRES_PASSWORD"] = "secure_password_123"
                 },
                 Volumes = new List<VolumeMapping>
@@ -116,6 +158,7 @@ public class ContainerOrchestrator : IContainerOrchestrator
 
     public async Task<DatabaseContainer> CreateContainerAsync(string userId, CreateContainerRequest request)
     {
+        int port = 0;
         try
         {
             if (!_templates.TryGetValue(request.DatabaseType, out var template))
@@ -123,20 +166,16 @@ public class ContainerOrchestrator : IContainerOrchestrator
                 throw new ArgumentException($"Unknown database type: {request.DatabaseType}");
             }
 
-            // Test Docker connectivity first
-            try
-            {
-                await _dockerClient.System.PingAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Docker daemon is not accessible");
-                throw new InvalidOperationException("Docker daemon is not accessible. Please ensure Docker is running.", ex);
-            }
+            // Get Docker client and test connectivity
+            var dockerClient = await GetDockerClientAsync();
 
-            var port = GetAvailablePort();
+            // Get an available port with Docker-aware checking
+            port = await GetAvailablePortAsync();
             var subdomain = GenerateSubdomain(userId, request.Name, request.DatabaseType);
             var containerName = $"dbmaker-{userId}-{request.DatabaseType}-{request.Name}";
+
+            _logger.LogInformation("Creating container: {ContainerName} on port {Port} with subdomain {Subdomain}", 
+                containerName, port, subdomain);
 
             var container = new DatabaseContainer
             {
@@ -152,9 +191,17 @@ public class ContainerOrchestrator : IContainerOrchestrator
 
             // Merge configuration with template defaults
             var environment = new Dictionary<string, string>(template.DefaultEnvironment);
+            
+            // Override with user-provided configuration
             foreach (var config in request.Configuration)
             {
                 environment[config.Key] = config.Value;
+            }
+
+            // Set database name for PostgreSQL if not provided
+            if (request.DatabaseType == "postgresql" && !environment.ContainsKey("POSTGRES_DB"))
+            {
+                environment["POSTGRES_DB"] = request.Name;
             }
 
             // Create port bindings
@@ -170,7 +217,7 @@ public class ContainerOrchestrator : IContainerOrchestrator
             // Ensure required images are available
             try
             {
-                await _dockerClient.Images.CreateImageAsync(
+                await dockerClient.Images.CreateImageAsync(
                     new ImagesCreateParameters
                     {
                         FromImage = template.DockerImage.Split(':')[0],
@@ -201,7 +248,9 @@ public class ContainerOrchestrator : IContainerOrchestrator
                     ["dbmaker.userId"] = userId,
                     ["dbmaker.databaseType"] = request.DatabaseType,
                     ["dbmaker.containerName"] = request.Name,
-                    ["dbmaker.subdomain"] = subdomain
+                    ["dbmaker.subdomain"] = subdomain,
+                    ["dbmaker.port"] = port.ToString(),
+                    ["dbmaker.createdAt"] = DateTime.UtcNow.ToString("O")
                 }
             };
 
@@ -213,24 +262,111 @@ public class ContainerOrchestrator : IContainerOrchestrator
                     .ToList();
             }
 
-            var response = await _dockerClient.Containers.CreateContainerAsync(createContainerParameters);
+            var response = await dockerClient.Containers.CreateContainerAsync(createContainerParameters);
             container.ContainerId = response.ID;
 
             // Generate connection string
             container.ConnectionString = GenerateConnectionString(template, port, environment, subdomain);
 
             // Start the container
-            await _dockerClient.Containers.StartContainerAsync(response.ID, new ContainerStartParameters());
-            container.Status = AppContainerStatus.Running;
-
-            _logger.LogInformation("Created and started container {ContainerName} for user {UserId}", containerName, userId);
+            await dockerClient.Containers.StartContainerAsync(response.ID, new ContainerStartParameters());
+            
+            // Wait a bit for the container to start
+            await Task.Delay(2000);
+            
+            // Verify container is running
+            var inspectResult = await dockerClient.Containers.InspectContainerAsync(response.ID);
+            if (inspectResult.State.Running)
+            {
+                container.Status = AppContainerStatus.Running;
+                
+                // Update nginx configuration
+                await UpdateNginxConfiguration(subdomain, port, request.DatabaseType);
+                
+                _logger.LogInformation("Successfully created and started container {ContainerName} for user {UserId} on port {Port}", 
+                    containerName, userId, port);
+            }
+            else
+            {
+                container.Status = AppContainerStatus.Failed;
+                _logger.LogError("Container {ContainerName} failed to start", containerName);
+            }
 
             return container;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create container for user {UserId}", userId);
+            // Release the port if container creation failed
+            if (port > 0 && _usedPorts.ContainsKey(port))
+            {
+                _usedPorts.TryRemove(port, out _);
+                _logger.LogInformation("Released port {Port} due to container creation failure", port);
+            }
+            
+            _logger.LogError(ex, "Failed to create container for user {UserId}: {Error}", userId, ex.Message);
             throw;
+        }
+    }
+
+    private async Task UpdateNginxConfiguration(string subdomain, int port, string databaseType)
+    {
+        try
+        {
+            var configLine = $"~^{subdomain}\\.mydomain\\.com$ {port};";
+            
+            // Read existing configuration
+            var existingLines = new List<string>();
+            if (File.Exists(_nginxConfigPath))
+            {
+                existingLines = (await File.ReadAllLinesAsync(_nginxConfigPath)).ToList();
+            }
+
+            // Remove any existing entry for this subdomain
+            existingLines.RemoveAll(line => line.Contains($"~^{subdomain}\\.mydomain\\.com$"));
+            
+            // Add the new entry
+            existingLines.Add(configLine);
+            
+            // Write back to file
+            var configContent = new StringBuilder();
+            configContent.AppendLine("# Dynamic upstream configuration file");
+            configContent.AppendLine("# This file is managed by the container orchestrator");
+            configContent.AppendLine("# Each line maps a subdomain pattern to a port number");
+            configContent.AppendLine();
+            
+            foreach (var line in existingLines.Where(l => !l.StartsWith("#") && !string.IsNullOrWhiteSpace(l)))
+            {
+                configContent.AppendLine(line);
+            }
+            
+            await File.WriteAllTextAsync(_nginxConfigPath, configContent.ToString());
+            
+            // Reload nginx configuration
+            await ReloadNginxConfiguration();
+            
+            _logger.LogInformation("Updated nginx configuration for subdomain {Subdomain} -> port {Port}", subdomain, port);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update nginx configuration for subdomain {Subdomain}", subdomain);
+        }
+    }
+
+    private async Task ReloadNginxConfiguration()
+    {
+        try
+        {
+            // This would normally reload nginx configuration
+            // For development, we'll just log it
+            _logger.LogInformation("Nginx configuration reload requested (development mode)");
+            
+            // In production, you would do something like:
+            // await System.Diagnostics.Process.Start("docker", "exec nginx-container nginx -s reload");
+            await Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to reload nginx configuration");
         }
     }
 
@@ -238,7 +374,8 @@ public class ContainerOrchestrator : IContainerOrchestrator
     {
         try
         {
-            await _dockerClient.Containers.StartContainerAsync(containerId, new ContainerStartParameters());
+            var dockerClient = await GetDockerClientAsync();
+            await dockerClient.Containers.StartContainerAsync(containerId, new ContainerStartParameters());
             return true;
         }
         catch (Exception ex)
@@ -252,7 +389,8 @@ public class ContainerOrchestrator : IContainerOrchestrator
     {
         try
         {
-            await _dockerClient.Containers.StopContainerAsync(containerId, new ContainerStopParameters());
+            var dockerClient = await GetDockerClientAsync();
+            await dockerClient.Containers.StopContainerAsync(containerId, new ContainerStopParameters());
             return true;
         }
         catch (Exception ex)
@@ -266,7 +404,28 @@ public class ContainerOrchestrator : IContainerOrchestrator
     {
         try
         {
-            await _dockerClient.Containers.RemoveContainerAsync(containerId, new ContainerRemoveParameters { Force = true });
+            var dockerClient = await GetDockerClientAsync();
+            
+            // Get container info before removing
+            var containerInfo = await dockerClient.Containers.InspectContainerAsync(containerId);
+            var subdomain = containerInfo.Config.Labels?.TryGetValue("dbmaker.subdomain", out var subdomainValue) == true ? subdomainValue : null;
+            var port = containerInfo.Config.Labels?.TryGetValue("dbmaker.port", out var portValue) == true ? portValue : null;
+            
+            // Remove the container
+            await dockerClient.Containers.RemoveContainerAsync(containerId, new ContainerRemoveParameters { Force = true });
+            
+            // Update nginx configuration to remove the subdomain mapping
+            if (!string.IsNullOrEmpty(subdomain))
+            {
+                await RemoveNginxConfiguration(subdomain);
+            }
+            
+            // Free up the port
+            if (!string.IsNullOrEmpty(port) && int.TryParse(port, out var portNum))
+            {
+                _usedPorts.TryRemove(portNum, out _);
+            }
+            
             return true;
         }
         catch (Exception ex)
@@ -276,22 +435,54 @@ public class ContainerOrchestrator : IContainerOrchestrator
         }
     }
 
+    private async Task RemoveNginxConfiguration(string subdomain)
+    {
+        try
+        {
+            if (!File.Exists(_nginxConfigPath)) return;
+            
+            var existingLines = (await File.ReadAllLinesAsync(_nginxConfigPath)).ToList();
+            var updatedLines = existingLines.Where(line => !line.Contains($"~^{subdomain}\\.mydomain\\.com$")).ToList();
+            
+            var configContent = new StringBuilder();
+            configContent.AppendLine("# Dynamic upstream configuration file");
+            configContent.AppendLine("# This file is managed by the container orchestrator");
+            configContent.AppendLine("# Each line maps a subdomain pattern to a port number");
+            configContent.AppendLine();
+            
+            foreach (var line in updatedLines.Where(l => !l.StartsWith("#") && !string.IsNullOrWhiteSpace(l)))
+            {
+                configContent.AppendLine(line);
+            }
+            
+            await File.WriteAllTextAsync(_nginxConfigPath, configContent.ToString());
+            await ReloadNginxConfiguration();
+            
+            _logger.LogInformation("Removed nginx configuration for subdomain {Subdomain}", subdomain);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to remove nginx configuration for subdomain {Subdomain}", subdomain);
+        }
+    }
+
     public async Task<ContainerMonitoringData?> GetContainerStatsAsync(string containerId)
     {
         try
         {
-            var inspect = await _dockerClient.Containers.InspectContainerAsync(containerId);
+            var dockerClient = await GetDockerClientAsync();
+            var inspectResponse = await dockerClient.Containers.InspectContainerAsync(containerId);
             
-            // For simplified monitoring, we'll use container state information
-            // In production, you might want to implement proper stats collection
             return new ContainerMonitoringData
             {
                 ContainerId = containerId,
-                Status = GetContainerStatus(inspect.State),
-                CpuUsage = 0, // Would need more complex implementation for real CPU stats
-                MemoryUsage = 0, // Would need more complex implementation for real memory stats
-                MemoryLimit = 0,
-                IsHealthy = inspect.State.Running && inspect.State.Health?.Status != "unhealthy"
+                Status = GetContainerStatus(inspectResponse.State),
+                CpuUsage = 0.0, // Would need stats stream for real CPU usage
+                MemoryUsage = 0L,    // Would need stats stream for real memory usage
+                MemoryLimit = 0L,
+                NetworkIO = new Dictionary<string, long>(),
+                Timestamp = DateTime.UtcNow,
+                IsHealthy = inspectResponse.State.Running
             };
         }
         catch (Exception ex)
@@ -303,42 +494,135 @@ public class ContainerOrchestrator : IContainerOrchestrator
 
     public async Task<List<ContainerMonitoringData>> GetAllContainerStatsAsync()
     {
-        var containers = await _dockerClient.Containers.ListContainersAsync(new ContainersListParameters
+        try
         {
-            Filters = new Dictionary<string, IDictionary<string, bool>>
+            var dockerClient = await GetDockerClientAsync();
+            var containers = await dockerClient.Containers.ListContainersAsync(new ContainersListParameters
             {
-                ["label"] = new Dictionary<string, bool> { ["dbmaker.userId"] = true }
-            }
-        });
-
-        var stats = new List<ContainerMonitoringData>();
-        foreach (var container in containers)
-        {
-            var containerStats = await GetContainerStatsAsync(container.ID);
-            if (containerStats != null)
-            {
-                // Extract user ID from labels
-                if (container.Labels.TryGetValue("dbmaker.userId", out var userId))
+                Filters = new Dictionary<string, IDictionary<string, bool>>
                 {
-                    containerStats.UserId = userId;
+                    ["label"] = new Dictionary<string, bool> { ["dbmaker.userId"] = true }
                 }
-                stats.Add(containerStats);
-            }
-        }
+            });
 
-        return stats;
+            var stats = new List<ContainerMonitoringData>();
+            foreach (var container in containers)
+            {
+                var containerStats = await GetContainerStatsAsync(container.ID);
+                if (containerStats != null)
+                {
+                    // Extract user ID from labels
+                    if (container.Labels.TryGetValue("dbmaker.userId", out var userId))
+                    {
+                        containerStats.UserId = userId;
+                    }
+                    stats.Add(containerStats);
+                }
+            }
+
+            return stats;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get all container stats");
+            return new List<ContainerMonitoringData>();
+        }
     }
 
     public int GetAvailablePort()
     {
+        // Use the async version but block on it for the interface compatibility
+        return GetAvailablePortAsync().GetAwaiter().GetResult();
+    }
+
+    public async Task<int> GetAvailablePortAsync()
+    {
+        // Refresh Docker port mappings before allocating
+        await LoadDockerPortMappings();
+
+        _logger.LogInformation("Starting port allocation search from {StartPort}", _currentPortStart);
+        _logger.LogDebug("Currently tracking {UsedPortCount} used ports", _usedPorts.Count);
+
         for (int port = _currentPortStart; port < _currentPortStart + 10000; port++)
         {
-            if (_usedPorts.TryAdd(port, true))
+            // Skip if we know this port is already used
+            if (_usedPorts.ContainsKey(port))
             {
+                _logger.LogDebug("Port {Port} is already tracked as used, skipping", port);
+                continue;
+            }
+
+            // Check if port is available on the system
+            if (await IsPortAvailableAsync(port))
+            {
+                _usedPorts.TryAdd(port, true); // Mark it as used
+                _logger.LogInformation("Successfully allocated port {Port} (checked system + Docker)", port);
                 return port;
             }
+            else
+            {
+                _logger.LogDebug("Port {Port} is not available on system, marking as used", port);
+                _usedPorts.TryAdd(port, true); // Mark unavailable port as used too
+            }
         }
-        throw new InvalidOperationException("No available ports");
+        
+        var errorMessage = $"No available ports in range {_currentPortStart}-{_currentPortStart + 9999}. " +
+                          $"Total tracked ports: {_usedPorts.Count}";
+        _logger.LogError(errorMessage);
+        throw new InvalidOperationException(errorMessage);
+    }
+
+    private async Task<bool> IsPortAvailableAsync(int port)
+    {
+        try
+        {
+            // Check system port availability first
+            using var listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Any, port);
+            listener.Start();
+            listener.Stop();
+
+            // Additional check: verify Docker isn't using this port
+            try
+            {
+                var dockerClient = await GetDockerClientAsync();
+                var containers = await dockerClient.Containers.ListContainersAsync(new ContainersListParameters
+                {
+                    All = true
+                });
+
+                foreach (var container in containers)
+                {
+                    if (container.Ports != null)
+                    {
+                        foreach (var dockerPort in container.Ports)
+                        {
+                            // Check if the port matches - PublicPort is ushort, not nullable
+                            if (dockerPort.PublicPort == port)
+                            {
+                                _logger.LogDebug("Port {Port} is used by Docker container {ContainerId}", port, container.ID);
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception dockerEx)
+            {
+                _logger.LogWarning(dockerEx, "Could not check Docker ports for availability, port {Port} may be in use", port);
+                // If Docker check fails, rely on system port check above
+            }
+
+            return true;
+        }
+        catch (System.Net.Sockets.SocketException)
+        {
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error checking port {Port} availability, assuming unavailable", port);
+            return false;
+        }
     }
 
     public string GenerateSubdomain(string userId, string containerName, string databaseType)
@@ -351,6 +635,12 @@ public class ContainerOrchestrator : IContainerOrchestrator
         // Remove invalid characters
         subdomain = new string(subdomain.Where(c => char.IsLetterOrDigit(c) || c == '-').ToArray());
         
+        // Ensure it doesn't exceed DNS limits
+        if (subdomain.Length > 63)
+        {
+            subdomain = subdomain.Substring(0, 63);
+        }
+        
         return subdomain;
     }
 
@@ -358,9 +648,9 @@ public class ContainerOrchestrator : IContainerOrchestrator
     {
         return template.Type switch
         {
-            "redis" => $"redis://{subdomain}.mydomain.com:{port}",
-            "postgresql" => $"postgresql://{environment.GetValueOrDefault("POSTGRES_USER", "dbuser")}:{environment.GetValueOrDefault("POSTGRES_PASSWORD", "password")}@{subdomain}.mydomain.com:{port}/{environment.GetValueOrDefault("POSTGRES_DB", "userdb")}",
-            _ => $"{template.Type}://{subdomain}.mydomain.com:{port}"
+            "redis" => $"redis://{subdomain}.mydomain.com:80",
+            "postgresql" => $"postgresql://{(environment.TryGetValue("POSTGRES_USER", out var user) ? user : "admin")}:{(environment.TryGetValue("POSTGRES_PASSWORD", out var pass) ? pass : "password")}@{subdomain}.mydomain.com:80/{(environment.TryGetValue("POSTGRES_DB", out var db) ? db : "userdb")}",
+            _ => $"{template.Type}://{subdomain}.mydomain.com:80"
         };
     }
 
@@ -369,20 +659,6 @@ public class ContainerOrchestrator : IContainerOrchestrator
         if (state.Running) return AppContainerStatus.Running;
         if (state.Dead) return AppContainerStatus.Failed;
         return AppContainerStatus.Stopped;
-    }
-
-    private double CalculateCpuUsage(ContainerStatsResponse stats)
-    {
-        // Simplified CPU usage calculation
-        var cpuDelta = stats.CPUStats?.CPUUsage?.TotalUsage - stats.PreCPUStats?.CPUUsage?.TotalUsage;
-        var systemDelta = stats.CPUStats?.SystemUsage - stats.PreCPUStats?.SystemUsage;
-        
-        if (cpuDelta > 0 && systemDelta > 0)
-        {
-            return (double)(cpuDelta ?? 0) / (double)(systemDelta ?? 1) * 100.0;
-        }
-        
-        return 0.0;
     }
 
     public void Dispose()

@@ -1,0 +1,14 @@
+{
+  "ui": {
+    "darkMode": true,
+    "theme": "dark",
+    "enableAnimations": true,
+    "refreshInterval": 30
+  },
+  "containers": {
+    "showAllContainers": true,
+    "showSystemContainers": false,
+    "enableVisualization": true,
+    "hiddenContainers": []
+  }
+}

@@ -4,6 +4,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface SetupStatus {
   databaseConfigured: boolean;
@@ -97,91 +98,59 @@ export interface DatabaseTemplate {
   providedIn: 'root'
 })
 export class DbMakerApiClient {
-  private baseUrl = 'http://localhost:5021/api';
+  private baseUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 
-  private getHeaders(): HttpHeaders {
-    return new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    });
-  }
+  // Setup
+  setup = {
+    getStatus: () => this.http.get<SetupStatus>(`${this.baseUrl}/setup/status`),
+    validateDocker: () => this.http.get<ValidationResult>(`${this.baseUrl}/setup/validate/docker`),
+    validateMsal: () => this.http.get<ValidationResult>(`${this.baseUrl}/setup/validate/msal`),
+    initialize: (request: InitializeSystemRequest) =>
+      this.http.post<InitializationResult>(`${this.baseUrl}/setup/initialize`, request)
+  };
 
-  // Setup endpoints
-  getSetupStatus(): Observable<SetupStatus> {
-    return this.http.get<SetupStatus>(`${this.baseUrl}/setup/status`, { headers: this.getHeaders() });
-  }
+  // Containers
+  containers = {
+    getAll: () => this.http.get<ContainerResponse[]>(`${this.baseUrl}/containers`),
+    get: (id: string) => this.http.get<ContainerResponse>(`${this.baseUrl}/containers/${id}`),
+    create: (request: CreateContainerRequest) =>
+      this.http.post<ContainerResponse>(`${this.baseUrl}/containers`, request),
+    start: (id: string) => this.http.post<void>(`${this.baseUrl}/containers/${id}/start`, {}),
+    stop: (id: string) => this.http.post<void>(`${this.baseUrl}/containers/${id}/stop`, {}),
+    delete: (id: string) => this.http.delete<void>(`${this.baseUrl}/containers/${id}`),
+    getStats: (id: string) => this.http.get<ContainerMonitoringData>(`${this.baseUrl}/containers/${id}/stats`)
+  };
 
-  validateDocker(): Observable<ValidationResult> {
-    return this.http.get<ValidationResult>(`${this.baseUrl}/setup/validate/docker`, { headers: this.getHeaders() });
-  }
+  // Templates
+  templates = {
+    getAll: () => this.http.get<DatabaseTemplate[]>(`${this.baseUrl}/templates`),
+    get: (type: string) => this.http.get<DatabaseTemplate>(`${this.baseUrl}/templates/${type}`)
+  };
 
-  validateMsal(): Observable<ValidationResult> {
-    return this.http.get<ValidationResult>(`${this.baseUrl}/setup/validate/msal`, { headers: this.getHeaders() });
-  }
+  // Monitoring
+  monitoring = {
+    getStats: () => this.http.get<ContainerMonitoringData[]>(`${this.baseUrl}/monitoring/stats`),
+    getContainerStats: (id: string) =>
+      this.http.get<ContainerMonitoringData>(`${this.baseUrl}/monitoring/stats/${id}`),
+    getSummary: () => this.http.get<MonitoringSummary>(`${this.baseUrl}/monitoring/summary`),
+    testContainer: (id: string) =>
+      this.http.post<ContainerTestResult>(`${this.baseUrl}/monitoring/test/${id}`, {})
+  };
 
-  initializeSystem(request: InitializeSystemRequest): Observable<InitializationResult> {
-    return this.http.post<InitializationResult>(`${this.baseUrl}/setup/initialize`, request, { headers: this.getHeaders() });
-  }
+  // Users
+  users = {
+  getCurrent: () => this.http.get<any>(`${this.baseUrl}/users/me`),
+  getStats: () => this.http.get<any>(`${this.baseUrl}/users/me/stats`),
+    getAll: () => this.http.get<any[]>(`${this.baseUrl}/users`),
+    create: (user: any) => this.http.post<any>(`${this.baseUrl}/users`, user),
+    update: (id: string, user: any) => this.http.put<any>(`${this.baseUrl}/users/${id}`, user),
+    delete: (id: string) => this.http.delete<void>(`${this.baseUrl}/users/${id}`)
+  };
 
-  // Container endpoints
-  getContainers(): Observable<ContainerResponse[]> {
-    return this.http.get<ContainerResponse[]>(`${this.baseUrl}/containers`, { headers: this.getHeaders() });
-  }
-
-  getContainer(id: string): Observable<ContainerResponse> {
-    return this.http.get<ContainerResponse>(`${this.baseUrl}/containers/${id}`, { headers: this.getHeaders() });
-  }
-
-  createContainer(request: CreateContainerRequest): Observable<ContainerResponse> {
-    return this.http.post<ContainerResponse>(`${this.baseUrl}/containers`, request, { headers: this.getHeaders() });
-  }
-
-  startContainer(id: string): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/containers/${id}/start`, {}, { headers: this.getHeaders() });
-  }
-
-  stopContainer(id: string): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/containers/${id}/stop`, {}, { headers: this.getHeaders() });
-  }
-
-  deleteContainer(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/containers/${id}`, { headers: this.getHeaders() });
-  }
-
-  getContainerStats(id: string): Observable<ContainerMonitoringData> {
-    return this.http.get<ContainerMonitoringData>(`${this.baseUrl}/containers/${id}/stats`, { headers: this.getHeaders() });
-  }
-
-  // Templates endpoints
-  getTemplates(): Observable<DatabaseTemplate[]> {
-    return this.http.get<DatabaseTemplate[]>(`${this.baseUrl}/templates`, { headers: this.getHeaders() });
-  }
-
-  getTemplate(type: string): Observable<DatabaseTemplate> {
-    return this.http.get<DatabaseTemplate>(`${this.baseUrl}/templates/${type}`, { headers: this.getHeaders() });
-  }
-
-  // Monitoring endpoints
-  getMonitoringStats(): Observable<ContainerMonitoringData[]> {
-    return this.http.get<ContainerMonitoringData[]>(`${this.baseUrl}/monitoring/stats`, { headers: this.getHeaders() });
-  }
-
-  getContainerMonitoringStats(id: string): Observable<ContainerMonitoringData> {
-    return this.http.get<ContainerMonitoringData>(`${this.baseUrl}/monitoring/stats/${id}`, { headers: this.getHeaders() });
-  }
-
-  getMonitoringSummary(): Observable<MonitoringSummary> {
-    return this.http.get<MonitoringSummary>(`${this.baseUrl}/monitoring/summary`, { headers: this.getHeaders() });
-  }
-
-  testContainer(id: string): Observable<ContainerTestResult> {
-    return this.http.post<ContainerTestResult>(`${this.baseUrl}/monitoring/test/${id}`, {}, { headers: this.getHeaders() });
-  }
-
-  // Health endpoint
-  getHealth(): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/health`, { headers: this.getHeaders() });
-  }
+  // Health
+  health = {
+    check: () => this.http.get<any>(`${this.baseUrl}/health`)
+  };
 }

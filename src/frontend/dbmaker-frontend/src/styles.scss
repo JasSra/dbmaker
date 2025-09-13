@@ -1,5 +1,101 @@
-// Angular Material Theme - Import the pre-built theme
-@import '@angular/material/prebuilt-themes/indigo-pink.css';
+// Angular Material theme setup using CSS variables (single source of truth)
+@use '@angular/material' as mat;
+
+// Define palettes using css variables; Material 3 will respect currentColor in many components
+// We'll primarily style through CSS variables and container styles below.
+
+// Global CSS Variables for Theme Support
+:root {
+  // Light theme (default)
+  --primary-color: #4fc3f7;
+  --accent-color: #667eea;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-tertiary: #64748b;
+  --border-color: #e2e8f0;
+  --card-bg: #ffffff;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --hero-start: #667eea;
+  --hero-end: #764ba2;
+  --header-start: #1e3c72;
+  --header-end: #2a5298;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --error-color: #ef4444;
+  --info-color: #3b82f6;
+
+  // Precomputed tints (avoid color-mix for wider build/browser support)
+  --accent-tint-10: rgba(102, 126, 234, 0.10);
+  --accent-tint-12: rgba(102, 126, 234, 0.12);
+  --success-tint-12: rgba(16, 185, 129, 0.12);
+  --warning-tint-12: rgba(245, 158, 11, 0.12);
+  --error-tint-12: rgba(239, 68, 68, 0.12);
+}
+
+// Dark theme overrides
+.dark-theme {
+  --bg-primary: #0f172a;
+  --bg-secondary: #111827;
+  --bg-tertiary: #1f2937;
+  --text-primary: #f8fafc;
+  --text-secondary: #e2e8f0;
+  --text-tertiary: #94a3b8;
+  --border-color: #374151;
+  --card-bg: #1e293b;
+  --shadow-color: rgba(0, 0, 0, 0.5);
+  --hero-start: #111827;
+  --hero-end: #0b1220;
+  --header-start: #0b1220;
+  --header-end: #0b2440;
+  --success-color: #059669;
+  --warning-color: #d97706;
+  --error-color: #dc2626;
+  --info-color: #2563eb;
+
+  // Dark theme tints (slightly stronger alpha to show on dark backgrounds)
+  --accent-tint-10: rgba(102, 126, 234, 0.15);
+  --accent-tint-12: rgba(102, 126, 234, 0.20);
+  --success-tint-12: rgba(5, 150, 105, 0.20);
+  --warning-tint-12: rgba(217, 119, 6, 0.20);
+  --error-tint-12: rgba(220, 38, 38, 0.20);
+
+  // Material overrides for dark theme
+  .mat-mdc-card {
+    background-color: var(--card-bg) !important;
+    color: var(--text-primary) !important;
+  }
+
+  .mat-mdc-button, .mat-mdc-outlined-button, .mat-mdc-raised-button {
+    color: var(--text-primary) !important;
+  }
+
+  .mat-mdc-form-field {
+    color: var(--text-primary) !important;
+  }
+
+  .mat-mdc-input-element {
+    color: var(--text-primary) !important;
+  }
+
+  .mat-mdc-select {
+    color: var(--text-primary) !important;
+  }
+
+  .mat-toolbar {
+    background: linear-gradient(135deg, var(--header-start) 0%, var(--header-end) 100%) !important;
+    color: var(--text-primary) !important;
+  }
+}
+
+// Light theme specific overrides
+.light-theme {
+  .mat-toolbar {
+    background: linear-gradient(135deg, var(--header-start) 0%, var(--header-end) 100%) !important;
+  }
+}
 
 // Global Styles for Modern App
 * {
@@ -13,6 +109,32 @@ html, body {
   font-family: 'Inter', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+// Skip link accessibility
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: 0;
+  background: var(--accent-color);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  z-index: 10000;
+}
+.skip-link:focus {
+  left: 12px;
+  top: 12px;
+}
+
+// Focus styles
+:focus-visible {
+  outline: 3px solid var(--accent-color);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 // Material Icons
@@ -53,43 +175,121 @@ html, body {
 
 // Modern card styles
 .modern-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 32px var(--shadow-color);
   transition: all 0.3s ease;
+  border: 1px solid var(--border-color);
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 16px 48px var(--shadow-color);
   }
 }
 
 // Modern gradient backgrounds
 .gradient-bg-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--hero-start) 0%, var(--hero-end) 100%);
 }
 
 .gradient-bg-secondary {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
 }
 
 .gradient-bg-success {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: linear-gradient(135deg, var(--success-color) 0%, #00f2fe 100%);
 }
 
 // Text utilities
 .text-gradient {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
+.text-primary {
+  color: var(--text-primary) !important;
+}
+
+.text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+.text-tertiary {
+  color: var(--text-tertiary) !important;
+}
+
+.bg-primary {
+  background-color: var(--bg-primary) !important;
+}
+
+.bg-secondary {
+  background-color: var(--bg-secondary) !important;
+}
+
+.bg-tertiary {
+  background-color: var(--bg-tertiary) !important;
+}
+
 // Loading state
 .loading-shimmer {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--border-color) 50%, var(--bg-tertiary) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
+}
+
+// Theme-aware form styles
+.theme-form-field {
+  .mat-mdc-form-field {
+    .mat-mdc-text-field-wrapper {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+
+      &:hover {
+        border-color: var(--primary-color);
+      }
+    }
+
+    .mat-mdc-form-field-label {
+      color: var(--text-secondary);
+    }
+
+    .mat-mdc-input-element {
+      color: var(--text-primary);
+    }
+  }
+}
+
+// Theme-aware button styles
+.theme-button {
+  &.mat-mdc-button, &.mat-mdc-raised-button, &.mat-mdc-outlined-button {
+    color: var(--text-primary);
+    border-color: var(--border-color);
+
+    &:hover {
+      background-color: var(--bg-secondary);
+    }
+
+    &.mat-primary {
+      background-color: var(--primary-color);
+      color: white;
+
+      &:hover {
+        opacity: 0.9;
+      }
+    }
+
+    &.mat-accent {
+      background-color: var(--accent-color);
+      color: white;
+
+      &:hover {
+        opacity: 0.9;
+      }
+    }
+  }
 }
 
 @keyframes shimmer {
@@ -100,3 +300,83 @@ html, body {
     background-position: 200% 0;
   }
 }
+
+// Additional theme-aware components
+.theme-table {
+  .mat-mdc-table {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+
+    .mat-mdc-row:hover {
+      background-color: var(--bg-secondary);
+    }
+
+    .mat-mdc-header-cell {
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .mat-mdc-cell {
+      color: var(--text-primary);
+    }
+  }
+}
+
+/* Menu theming: apply when the panel itself has class 'theme-menu' */
+.mat-mdc-menu-panel.theme-menu {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+}
+
+.mat-mdc-menu-panel.theme-menu .mat-mdc-menu-item {
+  color: var(--text-primary);
+}
+
+.mat-mdc-menu-panel.theme-menu .mat-mdc-menu-item:hover {
+  background-color: var(--bg-secondary);
+}
+
+/* Divider contrast */
+.mat-divider {
+  border-color: var(--border-color) !important;
+}
+
+.theme-dialog {
+  .mat-mdc-dialog-container {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+  }
+
+  .mat-mdc-dialog-title {
+    color: var(--text-primary);
+  }
+
+  .mat-mdc-dialog-content {
+    color: var(--text-secondary);
+  }
+}
+
+// Status indicators
+.status-indicator {
+  &.success {
+    background-color: var(--success-color);
+    color: white;
+  }
+
+  &.warning {
+    background-color: var(--warning-color);
+    color: white;
+  }
+
+  &.error {
+    background-color: var(--error-color);
+    color: white;
+  }
+
+  &.info {
+    background-color: var(--info-color);
+    color: white;
+  }
+}
+

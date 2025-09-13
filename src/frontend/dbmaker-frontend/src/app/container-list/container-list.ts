@@ -1,4 +1,4 @@
-import { Component, OnInit, TrackByFunction } from '@angular/core';
+import { Component, OnInit, TrackByFunction, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -19,7 +19,8 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDividerModule } from '@angular/material/divider';
 
 import { ContainerService } from '../services/container.service';
-import { ContainerResponse, ContainerStatus, ContainerMonitoringData } from '../models/container.models';
+import { type ContainerResponse, type ContainerMonitoringData } from '../../../api/consolidated';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-container-list',
@@ -62,7 +63,8 @@ export class ContainerListComponent implements OnInit {
 
   constructor(
     private containerService: ContainerService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -72,17 +74,38 @@ export class ContainerListComponent implements OnInit {
   loadContainers(): void {
     this.loading = true;
     this.errorMessage = '';
-    this.containerService.getContainers().subscribe({
+    this.containerService.getContainers()
+      .pipe(finalize(() => { this.loading = false; this.cdr.detectChanges(); }))
+      .subscribe({
       next: (containers) => {
-        this.containers = containers;
-        this.filteredContainers = [...containers];
-        this.loading = false;
+        // Normalize status to string labels if backend returned numbers
+        this.containers = containers.map((c) => ({
+          ...c,
+          status: this.normalizeStatus(c.status as unknown as any)
+        })) as unknown as ContainerResponse[];
+        this.filteredContainers = [...this.containers];
+    // Ensure UI updates in zoneless mode
+    this.cdr.detectChanges();
       },
       error: (err) => {
-        this.loading = false;
         this.errorMessage = err?.error?.message || 'Failed to load containers';
+        this.showSnackBar(this.errorMessage);
+    this.cdr.detectChanges();
       }
     });
+  }
+
+  private normalizeStatus(status: any): string {
+    if (typeof status === 'string') return status;
+    // Enum mapping from backend: 0 Creating, 1 Running, 2 Stopped, 3 Failed, 4 Removing
+    const map: Record<number, string> = {
+      0: 'Creating',
+      1: 'Running',
+      2: 'Stopped',
+      3: 'Failed',
+      4: 'Removing'
+    };
+    return map[Number(status)] ?? 'Unknown';
   }
 
   // Optionally load stats lazily per container as needed
@@ -101,22 +124,22 @@ export class ContainerListComponent implements OnInit {
   }
 
   public applyFilters(): void {
-    let filtered = [...this.containers];
+  let filtered = [...this.containers];
 
     // Apply search filter
     if (this.searchTerm.trim()) {
       const searchLower = this.searchTerm.toLowerCase();
       filtered = filtered.filter(container =>
-        container.name.toLowerCase().includes(searchLower) ||
-        container.databaseType.toLowerCase().includes(searchLower) ||
-        container.status.toLowerCase().includes(searchLower) ||
-        container.subdomain.toLowerCase().includes(searchLower)
+        (container.name ?? '').toLowerCase().includes(searchLower) ||
+        (container.databaseType ?? '').toLowerCase().includes(searchLower) ||
+        (String(container.status ?? '')).toLowerCase().includes(searchLower) ||
+        (container.subdomain ?? '').toLowerCase().includes(searchLower)
       );
     }
 
     // Apply status filter
     if (this.statusFilter) {
-  filtered = filtered.filter(container => (container.status as unknown as string) === this.statusFilter);
+      filtered = filtered.filter(container => this.normalizeStatus(container.status as any) === this.statusFilter);
     }
 
     // Apply type filter
@@ -135,12 +158,13 @@ export class ContainerListComponent implements OnInit {
   }
 
   startContainer(container: ContainerResponse): void {
-    this.actionInProgress = container.id;
-    this.containerService.startContainer(container.id).subscribe({
+  const id = container.id ?? '';
+  this.actionInProgress = id;
+  this.containerService.startContainer(id).subscribe({
       next: () => {
         const index = this.containers.findIndex(c => c.id === container.id);
         if (index !== -1) {
-          this.containers[index].status = ContainerStatus.Running;
+      this.containers[index].status = 'Running' as any;
           this.applyFilters();
         }
         this.actionInProgress = null;
@@ -154,12 +178,13 @@ export class ContainerListComponent implements OnInit {
   }
 
   stopContainer(container: ContainerResponse): void {
-    this.actionInProgress = container.id;
-    this.containerService.stopContainer(container.id).subscribe({
+  const id = container.id ?? '';
+  this.actionInProgress = id;
+  this.containerService.stopContainer(id).subscribe({
       next: () => {
         const index = this.containers.findIndex(c => c.id === container.id);
         if (index !== -1) {
-          this.containers[index].status = ContainerStatus.Stopped;
+      this.containers[index].status = 'Stopped' as any;
           this.applyFilters();
         }
         this.actionInProgress = null;
@@ -174,8 +199,9 @@ export class ContainerListComponent implements OnInit {
 
   deleteContainer(container: ContainerResponse): void {
     if (confirm(`Are you sure you want to delete container "${container.name}"? This action cannot be undone.`)) {
-      this.actionInProgress = container.id;
-      this.containerService.deleteContainer(container.id).subscribe({
+  const id = container.id ?? '';
+  this.actionInProgress = id;
+  this.containerService.deleteContainer(id).subscribe({
         next: () => {
           this.containers = this.containers.filter(c => c.id !== container.id);
           this.applyFilters();
@@ -190,8 +216,9 @@ export class ContainerListComponent implements OnInit {
     }
   }
 
-  copyConnectionString(connectionString: string): void {
-    navigator.clipboard.writeText(connectionString).then(() => {
+  copyConnectionString(connectionString: string | null | undefined): void {
+    const text = connectionString ?? '';
+    navigator.clipboard.writeText(text).then(() => {
       this.showSnackBar('Connection string copied to clipboard');
     }).catch((error) => {
       console.error('Failed to copy connection string:', error);
@@ -214,32 +241,35 @@ export class ContainerListComponent implements OnInit {
     // Navigate to edit container page
   }
 
-  getContainerIcon(databaseType: string): string {
+  getContainerIcon(databaseType: string | null | undefined): string {
+    const type = (databaseType ?? '').toLowerCase();
     const iconMap: { [key: string]: string } = {
       'postgresql': 'storage',
       'redis': 'memory',
       'mysql': 'dns',
       'mongodb': 'folder_special'
     };
-    return iconMap[databaseType] || 'database';
+    return iconMap[type] || 'database';
   }
 
-  getStatusIcon(status: ContainerStatus): string {
-    switch (status) {
-      case ContainerStatus.Running:
+  getStatusIcon(status: any): string {
+    const statusStr = this.normalizeStatus(status);
+    switch (statusStr) {
+      case 'Running':
         return 'play_circle';
-      case ContainerStatus.Stopped:
+      case 'Stopped':
         return 'stop_circle';
-      case ContainerStatus.Creating:
+      case 'Creating':
         return 'hourglass_empty';
-      case ContainerStatus.Failed:
+      case 'Failed':
         return 'error';
       default:
         return 'help';
     }
   }
 
-  getMonitoringData(containerId: string): ContainerMonitoringData | undefined {
+  getMonitoringData(containerId: string | null | undefined): ContainerMonitoringData | undefined {
+    if (!containerId) return undefined;
     return this.monitoringData.get(containerId);
   }
 

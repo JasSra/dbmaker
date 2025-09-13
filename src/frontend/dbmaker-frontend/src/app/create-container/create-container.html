@@ -1,15 +1,23 @@
 <div class="create-container">
-	<mat-card>
+	<mat-card class="modern-card">
 		<mat-card-title>Create Container</mat-card-title>
 		<mat-card-content>
 			<form [formGroup]="containerForm" (ngSubmit)="onSubmit()">
 				<div class="form-grid">
-					<mat-form-field appearance="outline">
-						<mat-label>Name</mat-label>
-						<input matInput formControlName="name" placeholder="e.g. analytics-postgres">
-					</mat-form-field>
+					<div class="name-field-container">
+						<mat-form-field appearance="outline" class="theme-form-field">
+							<mat-label>Name</mat-label>
+							<input matInput formControlName="name" placeholder="e.g. analytics-postgres" required minlength="3" aria-describedby="nameHelp">
+							<mat-hint id="nameHelp">Lowercase letters, numbers, and hyphens. Min 3 characters.</mat-hint>
+							<mat-error *ngIf="containerForm.get('name')?.hasError('required')">Name is required.</mat-error>
+							<mat-error *ngIf="containerForm.get('name')?.hasError('minlength')">Name must be at least 3 characters.</mat-error>
+						</mat-form-field>
+						<button mat-icon-button type="button" (click)="onGenerateNewName()" matTooltip="Generate new random name" class="generate-name-btn" aria-label="Generate new name">
+							<mat-icon>refresh</mat-icon>
+						</button>
+					</div>
 
-					<mat-form-field appearance="outline">
+					<mat-form-field appearance="outline" class="theme-form-field">
 						<mat-label>Type</mat-label>
 						<mat-select formControlName="type">
 							<mat-option value="redis">Redis</mat-option>
@@ -17,23 +25,26 @@
 						</mat-select>
 					</mat-form-field>
 
-								<mat-form-field appearance="outline" class="full">
+								<mat-form-field appearance="outline" class="full theme-form-field">
 						<mat-label>Description</mat-label>
 									<textarea matInput rows="4" formControlName="description" placeholder="Optional description"></textarea>
 					</mat-form-field>
 				</div>
 
 				<div class="actions">
-					<button mat-raised-button color="primary" type="submit" [disabled]="isCreating || !containerForm.valid">
+					<button mat-raised-button color="primary" class="theme-button" type="submit" [disabled]="isCreating || !containerForm.valid" aria-live="polite">
 						<mat-spinner diameter="18" *ngIf="isCreating"></mat-spinner>
 						<span *ngIf="!isCreating">Create</span>
+						<span *ngIf="isCreating">Creating...</span>
 					</button>
-					<button mat-button type="button" (click)="onCancel()">Cancel</button>
+					<button mat-button class="theme-button" type="button" (click)="onCancel()">Cancel</button>
 				</div>
 
-				<p class="success" *ngIf="successMessage">{{ successMessage }}</p>
-				<p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+				<p class="success" *ngIf="successMessage" role="status">{{ successMessage }}</p>
+				<p class="error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
 			</form>
 		</mat-card-content>
 	</mat-card>
+
+
 </div>

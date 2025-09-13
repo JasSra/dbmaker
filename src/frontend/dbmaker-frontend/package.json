@@ -7,7 +7,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:dbmaker-frontend": "node dist/dbmaker-frontend/server/server.mjs"
+    "serve:ssr:dbmaker-frontend": "node dist/dbmaker-frontend/server/server.mjs",
+    "gen:api": "curl -s http://localhost:5021/swagger/v1/swagger.json -o ./api-consolidated-schema.json && npx openapi-typescript-codegen --input ./api-consolidated-schema.json  --output api/consolidated --exportModels  true"
   },
   "prettier": {
     "printWidth": 100,

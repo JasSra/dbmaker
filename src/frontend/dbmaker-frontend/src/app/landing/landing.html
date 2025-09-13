@@ -2,10 +2,17 @@
   <div class="hero-content">
     <h1>Spin up personal databases in seconds</h1>
     <p>DbMaker gives every user isolated Redis and Postgres containers with smart ports, real-time monitoring, and zero ops.</p>
+
+    <!-- Subtle status (replaces debug block) -->
+    <div class="status-badge" *ngIf="isAuthenticated">
+      <mat-icon>verified_user</mat-icon>
+      Signed in
+    </div>
+
     <div class="cta">
       <button mat-raised-button color="primary" (click)="getStarted()">
         <mat-icon>rocket_launch</mat-icon>
-        Get started
+        {{ isAuthenticated ? 'Go to Dashboard' : 'Get started' }}
       </button>
       <a routerLink="/containers" class="secondary-link">Browse containers</a>
     </div>

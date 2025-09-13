@@ -78,8 +78,8 @@
                 <mat-card-title>MSAL Details</mat-card-title>
                 <mat-card-content>
                   <p><strong>Status:</strong> {{ validationResults['msal'].message }}</p>
-                  <details>
-                    <summary>Configuration Details</summary>
+                  <details *ngIf="environment?.features?.enableDebugMode">
+                    <summary>Configuration Details (Debug)</summary>
                     <pre>{{ validationResults['msal'].details }}</pre>
                   </details>
                 </mat-card-content>

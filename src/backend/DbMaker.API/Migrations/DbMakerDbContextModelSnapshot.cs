@@ -15,7 +15,7 @@ namespace DbMaker.API.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.8");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.8");
 
             modelBuilder.Entity("DbMaker.Shared.Models.DatabaseContainer", b =>
                 {
@@ -86,6 +86,45 @@ namespace DbMaker.API.Migrations
                         .IsUnique();
 
                     b.ToTable("DatabaseContainers");
+                });
+
+            modelBuilder.Entity("DbMaker.Shared.Models.SystemSettings", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Containers")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Docker")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Nginx")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UI")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("SystemSettings");
                 });
 
             modelBuilder.Entity("DbMaker.Shared.Models.User", b =>

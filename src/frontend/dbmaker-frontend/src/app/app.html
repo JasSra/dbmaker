@@ -1,13 +1,14 @@
 <div class="app-container">
+  <a class="skip-link" href="#main-content">Skip to content</a>
   <!-- Modern Header -->
   <mat-toolbar class="app-header" color="primary">
     <div class="header-left">
-      <mat-icon class="app-logo">storage</mat-icon>
-      <span class="app-title">DbMaker</span>
-      <span class="app-subtitle">Container Database Orchestration</span>
+      <mat-icon class="app-logo">hub</mat-icon>
+      <span class="app-title">StarkLink</span>
+      <span class="app-subtitle">Container Intelligence Platform</span>
     </div>
 
-    <div class="header-nav">
+    <div class="header-nav" *ngIf="isAuthenticated">
       <button mat-button routerLink="/dashboard" routerLinkActive="active-nav">
         <mat-icon>dashboard</mat-icon>
         Dashboard
@@ -20,6 +21,14 @@
         <mat-icon>add_circle</mat-icon>
         Create
       </button>
+      <button mat-button routerLink="/analytics" routerLinkActive="active-nav">
+        <mat-icon>analytics</mat-icon>
+        Analytics
+      </button>
+      <button mat-button routerLink="/settings" routerLinkActive="active-nav">
+        <mat-icon>settings</mat-icon>
+        Settings
+      </button>
     </div>
 
     <div class="header-right">
@@ -27,7 +36,7 @@
         <button mat-icon-button [matMenuTriggerFor]="userMenu">
           <mat-icon>account_circle</mat-icon>
         </button>
-        <mat-menu #userMenu="matMenu">
+  <mat-menu #userMenu="matMenu" class="theme-menu">
           <div class="user-info-menu">
             <div class="user-avatar">
               <mat-icon>person</mat-icon>
@@ -37,6 +46,19 @@
               <div class="user-email">{{ email }}</div>
             </div>
           </div>
+          <mat-divider></mat-divider>
+
+          <!-- Theme Toggle -->
+          <div class="theme-toggle-menu">
+            <mat-slide-toggle
+              [checked]="isDarkMode"
+              (change)="onThemeToggleChange($event)"
+              color="primary">
+              <mat-icon>{{ isDarkMode ? 'dark_mode' : 'light_mode' }}</mat-icon>
+              <span>{{ isDarkMode ? 'Dark' : 'Light' }} Mode</span>
+            </mat-slide-toggle>
+          </div>
+
           <mat-divider></mat-divider>
           <button mat-menu-item (click)="logout()">
             <mat-icon>logout</mat-icon>
@@ -54,7 +76,8 @@
   </mat-toolbar>
 
   <!-- Main Content Area -->
-  <div class="main-content">
+  <app-breadcrumbs></app-breadcrumbs>
+  <div class="main-content" id="main-content" role="main">
     <router-outlet></router-outlet>
   </div>
 

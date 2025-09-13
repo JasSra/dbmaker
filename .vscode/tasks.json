@@ -34,6 +34,61 @@
 				"cwd": "${workspaceFolder}"
 			},
 			"dependsOn": "build-backend"
+		},
+		{
+			"label": "run-frontend",
+			"type": "shell",
+			"command": "npm start",
+			"isBackground": true,
+			"group": "build"
+		},
+		{
+			"label": "run-frontend (frontend dir)",
+			"type": "shell",
+			"command": "npm start",
+			"args": [],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "run-backend",
+			"type": "shell",
+			"command": "dotnet run --project src/backend/DbMaker.API/DbMaker.API.csproj",
+			"isBackground": true,
+			"group": "build"
+		},
+		{
+			"label": "build-frontend",
+			"type": "shell",
+			"command": "npm run build --silent",
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "build-frontend",
+			"type": "shell",
+			"command": "npm run build --silent",
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "build-frontend",
+			"type": "shell",
+			"command": "npm run build --silent",
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "run-frontend (frontend dir)",
+			"type": "shell",
+			"command": "npm start",
+			"args": [],
+			"isBackground": true,
+			"group": "build"
 		}
 	]
 }

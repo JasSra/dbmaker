@@ -11,6 +11,7 @@ public class DbMakerDbContext : DbContext
 
     public DbSet<User> Users { get; set; }
     public DbSet<DatabaseContainer> DatabaseContainers { get; set; }
+    public DbSet<SystemSettings> SystemSettings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -56,6 +57,36 @@ public class DbMakerDbContext : DbContext
             entity.HasIndex(e => e.ContainerId);
             entity.HasIndex(e => e.Subdomain).IsUnique();
             entity.HasIndex(e => new { e.UserId, e.Name }).IsUnique();
+        });
+
+        // SystemSettings configuration
+        modelBuilder.Entity<SystemSettings>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.UserId).HasMaxLength(255);
+            
+            // Store complex objects as JSON
+            entity.Property(e => e.Docker)
+                  .HasConversion(
+                      v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                      v => System.Text.Json.JsonSerializer.Deserialize<DockerSettings>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new DockerSettings());
+
+            entity.Property(e => e.UI)
+                  .HasConversion(
+                      v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                      v => System.Text.Json.JsonSerializer.Deserialize<UISettings>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new UISettings());
+
+            entity.Property(e => e.Nginx)
+                  .HasConversion(
+                      v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                      v => System.Text.Json.JsonSerializer.Deserialize<NginxSettings>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new NginxSettings());
+
+            entity.Property(e => e.Containers)
+                  .HasConversion(
+                      v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                      v => System.Text.Json.JsonSerializer.Deserialize<ContainerSettings>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new ContainerSettings());
+
+            entity.HasIndex(e => e.UserId);
         });
     }
 }

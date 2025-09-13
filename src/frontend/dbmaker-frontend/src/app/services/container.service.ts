@@ -1,65 +1,87 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { ContainerResponse, CreateContainerRequest, ContainerMonitoringData, DatabaseTemplate } from '../models/container.models';
-import { DbMakerApiClient, ContainersService, TemplatesService, MonitoringService } from '../api-client/DbMakerApiClient';
+import { Observable, from, throwError, interval } from 'rxjs';
+import { catchError, tap, switchMap, shareReplay, startWith } from 'rxjs/operators';
+import {
+  ContainersService,
+  MonitoringService,
+  TemplatesService,
+  type ContainerResponse,
+  type CreateContainerRequest,
+  type ContainerMonitoringData,
+  type DatabaseContainer as DatabaseTemplate
+} from '../../../api/consolidated';
+import { environment } from '../../environments/environment';
+import { LoggerService } from './logger.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ContainerService {
-  private containersClient: ContainersService;
-  private templatesClient: TemplatesService;
-  private monitoringClient: MonitoringService;
-
-  constructor() {
-    const apiClient = new DbMakerApiClient('http://localhost:5021');
-    this.containersClient = apiClient.containers;
-    this.templatesClient = apiClient.templates;
-    this.monitoringClient = apiClient.monitoring;
-  }
-
+  constructor(private logger: LoggerService) {}
   getContainers(): Observable<ContainerResponse[]> {
-    return this.containersClient.getContainers();
+    return from(ContainersService.getApiContainers()).pipe(
+      tap({
+        next: () => this.logger.debug('[API] Containers fetched'),
+        error: (error) => this.logger.error('[API] Failed to fetch containers', error)
+      }),
+      catchError((err) => {
+        this.logger.error('[API] Containers fetch error', err);
+        return throwError(() => err);
+      })
+    );
   }
 
   getContainer(id: string): Observable<ContainerResponse> {
-    return this.containersClient.getContainer(id);
+    return from(ContainersService.getApiContainers1(id));
   }
 
   createContainer(request: CreateContainerRequest): Observable<ContainerResponse> {
-    return this.containersClient.createContainer(request);
+  this.logger.debug('[API] Creating container');
+    return from(ContainersService.postApiContainers(request)).pipe(
+      tap({
+    next: () => this.logger.debug('[API] Container created successfully'),
+    error: (error: any) => this.logger.error('[API] Container creation failed', error)
+      })
+    );
   }
 
   startContainer(id: string): Observable<void> {
-    return this.containersClient.startContainer(id);
+    return from(ContainersService.postApiContainersStart(id)) as unknown as Observable<void>;
   }
 
   stopContainer(id: string): Observable<void> {
-    return this.containersClient.stopContainer(id);
+    return from(ContainersService.postApiContainersStop(id)) as unknown as Observable<void>;
   }
 
   deleteContainer(id: string): Observable<void> {
-    return this.containersClient.deleteContainer(id);
+    return from(ContainersService.deleteApiContainers(id)) as unknown as Observable<void>;
   }
 
   getContainerStats(id: string): Observable<ContainerMonitoringData> {
-    return this.monitoringClient.getContainerStats(id);
+    return from(MonitoringService.getApiMonitoringStats1(id));
   }
 
   getTemplates(): Observable<DatabaseTemplate[]> {
-    return this.templatesClient.getTemplates();
+    // Database templates are exposed via generated TemplatesService
+    return from(TemplatesService.getApiTemplates()) as unknown as Observable<DatabaseTemplate[]>;
   }
 
   getTemplate(type: string): Observable<DatabaseTemplate> {
-    return this.templatesClient.getTemplate(type);
+    return from(TemplatesService.getApiTemplates1(type)) as unknown as Observable<DatabaseTemplate>;
   }
 
   getMonitoringSummary(): Observable<any> {
-    return this.monitoringClient.getMonitoringSummary();
+    return from(MonitoringService.getApiMonitoringSummary());
   }
 
-  // Server-Sent Events for real-time monitoring (requires auth)
-  getMonitoringStream(): EventSource {
-    return new EventSource('http://localhost:5021/api/monitoring/events');
+  // Polling-based monitoring stream using generated API (avoids manual /api calls)
+  // Emits MonitoringSummary at a fixed interval.
+  getMonitoringStream$(pollMs: number = 5000): Observable<any> {
+    return interval(pollMs).pipe(
+      startWith(0),
+      switchMap(() => from(MonitoringService.getApiMonitoringSummary())),
+      // cache latest for late subscribers within a short window
+      shareReplay({ bufferSize: 1, refCount: true })
+    );
   }
 }

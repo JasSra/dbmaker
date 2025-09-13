@@ -15,6 +15,25 @@ mat-card-title { text-align: center; font-size: 24px; margin: 8px 0 16px; }
 
 .form-grid .full { grid-column: 1 / -1; }
 
+.name-field-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+
+  mat-form-field {
+    flex: 1;
+  }
+
+  .generate-name-btn {
+    margin-top: 8px;
+    color: var(--accent-color);
+
+    &:hover {
+      background-color: var(--bg-secondary);
+    }
+  }
+}
+
 .actions {
   display: flex;
   align-items: center;
@@ -22,5 +41,22 @@ mat-card-title { text-align: center; font-size: 24px; margin: 8px 0 16px; }
   margin-top: 16px;
 }
 
-.success { color: #10b981; margin-top: 8px; }
-.error { color: #ef4444; margin-top: 8px; }
+.success {
+  color: var(--success-color);
+  margin-top: 12px;
+  background: var(--success-tint-12);
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.error {
+  color: var(--error-color);
+  margin-top: 12px;
+  background: var(--error-tint-12);
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.job-progress-section {
+  margin-top: 24px;
+}

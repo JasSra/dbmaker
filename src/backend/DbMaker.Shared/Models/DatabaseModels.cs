@@ -90,6 +90,8 @@ public class CreateContainerRequest
     [Required]
     public string Name { get; set; } = string.Empty;
     
+    public string? UserId { get; set; } // Optional - can be provided or taken from auth
+    
     public Dictionary<string, string> Configuration { get; set; } = new();
 }
 
@@ -104,4 +106,90 @@ public class ContainerResponse
     public int Port { get; set; }
     public DateTime CreatedAt { get; set; }
     public Dictionary<string, string> Configuration { get; set; } = new();
+}
+
+// Settings and Configuration Models
+public class SystemSettings
+{
+    public string Id { get; set; } = "system-settings";
+    public string UserId { get; set; } = string.Empty; // Empty for global settings, user-specific for user settings
+    
+    // Docker Configuration
+    public DockerSettings Docker { get; set; } = new();
+    
+    // UI Preferences
+    public UISettings UI { get; set; } = new();
+    
+    // Nginx Configuration
+    public NginxSettings Nginx { get; set; } = new();
+    
+    // Container Visibility
+    public ContainerSettings Containers { get; set; } = new();
+    
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+}
+
+public class DockerSettings
+{
+    public string DefaultHost { get; set; } = "npipe://./pipe/docker_engine";
+    public bool EnableMaintenance { get; set; } = true;
+    public bool AutoCleanup { get; set; } = true;
+    public int MaintenanceInterval { get; set; } = 3600; // seconds
+    public List<RemoteDockerHost> RemoteHosts { get; set; } = new();
+    public string? CurrentRemoteHost { get; set; } // null = local
+}
+
+public class UISettings
+{
+    public bool DarkMode { get; set; } = false;
+    public string Theme { get; set; } = "default";
+    public bool EnableAnimations { get; set; } = true;
+    public int RefreshInterval { get; set; } = 30; // seconds
+}
+
+public class NginxSettings
+{
+    public bool EnableDynamicSubdomains { get; set; } = true;
+    public string BaseDomain { get; set; } = "starklink.local";
+    public int ListenPort { get; set; } = 8080;
+    public bool UseGuidSubdomains { get; set; } = true;
+    public Dictionary<string, string> SubdomainMappings { get; set; } = new();
+}
+
+public class ContainerSettings
+{
+    public bool ShowAllContainers { get; set; } = false; // true = show all Docker containers, false = only managed
+    public bool ShowSystemContainers { get; set; } = false;
+    public bool EnableVisualization { get; set; } = true;
+    public List<string> HiddenContainers { get; set; } = new();
+}
+
+public class RemoteDockerHost
+{
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+    public string Name { get; set; } = string.Empty;
+    public string Host { get; set; } = string.Empty; // tcp://host:port, ssh://user@host, etc.
+    public bool UseTLS { get; set; } = false;
+    public string? CertPath { get; set; }
+    public string? KeyPath { get; set; }
+    public bool IsActive { get; set; } = false;
+    public DateTime LastConnected { get; set; }
+    public string? LastError { get; set; }
+}
+
+// Request/Response Models for Settings API
+public class UpdateSettingsRequest
+{
+    public DockerSettings? Docker { get; set; }
+    public UISettings? UI { get; set; }
+    public NginxSettings? Nginx { get; set; }
+    public ContainerSettings? Containers { get; set; }
+}
+
+public class SettingsResponse
+{
+    public SystemSettings Settings { get; set; } = new();
+    public bool Success { get; set; } = true;
+    public string? Message { get; set; }
 }

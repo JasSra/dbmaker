@@ -1,12 +1,12 @@
 <div class="dashboard-container">
   <!-- Hero Section -->
-  <div class="hero-section">
+  <div class="hero-section modern-card">
     <div class="hero-content">
       <h1 class="hero-title">Welcome to DbMaker</h1>
       <p class="hero-subtitle">Orchestrate your database containers with enterprise-grade precision</p>
     </div>
     <div class="hero-actions">
-      <button mat-raised-button color="primary" routerLink="/create" class="cta-button">
+  <button mat-raised-button color="primary" routerLink="/create" class="cta-button theme-button">
         <mat-icon>add_circle</mat-icon>
         Create New Container
       </button>
@@ -15,7 +15,7 @@
 
   <!-- Stats Grid -->
   <div class="stats-grid">
-    <mat-card class="stat-card fade-in-up delay-1">
+    <mat-card class="stat-card modern-card fade-in-up delay-1">
       <mat-card-content>
         <div class="stat-icon">
           <mat-icon>storage</mat-icon>
@@ -27,7 +27,7 @@
       </mat-card-content>
     </mat-card>
 
-    <mat-card class="stat-card fade-in-up delay-2">
+  <mat-card class="stat-card modern-card fade-in-up delay-2">
       <mat-card-content>
         <div class="stat-icon running">
           <mat-icon>play_circle</mat-icon>
@@ -39,7 +39,7 @@
       </mat-card-content>
     </mat-card>
 
-    <mat-card class="stat-card fade-in-up delay-3">
+  <mat-card class="stat-card modern-card fade-in-up delay-3">
       <mat-card-content>
         <div class="stat-icon postgres">
           <mat-icon>data_object</mat-icon>
@@ -51,7 +51,7 @@
       </mat-card-content>
     </mat-card>
 
-    <mat-card class="stat-card fade-in-up delay-4">
+  <mat-card class="stat-card modern-card fade-in-up delay-4">
       <mat-card-content>
         <div class="stat-icon redis">
           <mat-icon>memory</mat-icon>
@@ -66,7 +66,7 @@
 
   <!-- Recent Containers -->
   <div class="content-section">
-    <mat-card class="content-card fade-in-up delay-5">
+  <mat-card class="content-card modern-card fade-in-up delay-5">
       <mat-card-header>
         <mat-card-title>
           <mat-icon>schedule</mat-icon>
@@ -80,7 +80,7 @@
           <mat-icon class="empty-icon">inbox</mat-icon>
           <h3>No containers yet</h3>
           <p>Create your first database container to get started</p>
-          <button mat-raised-button color="primary" routerLink="/create">
+          <button mat-raised-button color="primary" routerLink="/create" class="theme-button">
             <mat-icon>add</mat-icon>
             Create Container
           </button>
@@ -101,20 +101,20 @@
             </div>
 
             <div class="container-status">
-              <mat-chip [ngClass]="'status-' + container.status.toLowerCase()">
+              <mat-chip [ngClass]="'status-' + (container.status || '').toString().toLowerCase()">
                 <mat-icon>{{ getStatusIcon(container.status) }}</mat-icon>
                 {{ container.status }}
               </mat-chip>
             </div>
 
             <div class="container-actions">
-              <button mat-icon-button
+              <button mat-icon-button aria-label="Copy connection string"
                       *ngIf="container.status === 'Running'"
                       matTooltip="Copy Connection String"
                       (click)="copyConnectionString(container.connectionString)">
                 <mat-icon>content_copy</mat-icon>
               </button>
-              <button mat-icon-button
+              <button mat-icon-button aria-label="View details"
                       matTooltip="View Details"
                       routerLink="/containers">
                 <mat-icon>visibility</mat-icon>
@@ -128,7 +128,7 @@
 
   <!-- Quick Actions -->
   <div class="content-section">
-    <mat-card class="content-card fade-in-up delay-7">
+  <mat-card class="content-card modern-card fade-in-up delay-7">
       <mat-card-header>
         <mat-card-title>
           <mat-icon>bolt</mat-icon>
@@ -139,19 +139,19 @@
 
       <mat-card-content>
         <div class="quick-actions-grid">
-          <button mat-button class="quick-action-btn" routerLink="/create">
+          <button mat-button class="quick-action-btn theme-button" routerLink="/create" aria-label="New container">
             <mat-icon>add_circle_outline</mat-icon>
             <span>New Container</span>
           </button>
-          <button mat-button class="quick-action-btn" routerLink="/containers">
+          <button mat-button class="quick-action-btn theme-button" routerLink="/containers" aria-label="View all containers">
             <mat-icon>list</mat-icon>
             <span>View All</span>
           </button>
-          <button mat-button class="quick-action-btn" (click)="refreshData()">
+          <button mat-button class="quick-action-btn theme-button" (click)="refreshData()" aria-label="Refresh dashboard data">
             <mat-icon>refresh</mat-icon>
             <span>Refresh</span>
           </button>
-          <button mat-button class="quick-action-btn" (click)="exportData()">
+          <button mat-button class="quick-action-btn theme-button" (click)="exportData()" aria-label="Export data">
             <mat-icon>download</mat-icon>
             <span>Export</span>
           </button>

@@ -1,9 +1,9 @@
 <div class="container-list-page">
   <!-- Header Section -->
-  <div class="page-header">
+  <div class="page-header modern-card">
     <div class="header-content">
       <h1 class="page-title">
-        <mat-icon>storage</mat-icon>
+        <mat-icon>developer_board</mat-icon>
         Database Containers
       </h1>
       <p class="page-subtitle">Manage your database instances</p>
@@ -21,10 +21,10 @@
 
   <!-- Filters and Search -->
   <div class="filters-section">
-    <mat-card class="filters-card">
+    <mat-card class="filters-card modern-card">
       <mat-card-content>
         <div class="filters-row">
-          <mat-form-field appearance="outline" class="search-field">
+          <mat-form-field appearance="outline" class="search-field theme-form-field">
             <mat-label>Search containers</mat-label>
             <input matInput
                    [(ngModel)]="searchTerm"
@@ -33,7 +33,7 @@
             <mat-icon matSuffix>search</mat-icon>
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="filter-field">
+          <mat-form-field appearance="outline" class="filter-field theme-form-field">
             <mat-label>Filter by Status</mat-label>
                     <mat-select [(value)]="statusFilter" (selectionChange)="applyFilters()">
               <mat-option value="">All Statuses</mat-option>
@@ -44,7 +44,7 @@
             </mat-select>
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="filter-field">
+          <mat-form-field appearance="outline" class="filter-field theme-form-field">
             <mat-label>Filter by Type</mat-label>
                      <mat-select [(value)]="typeFilter" (selectionChange)="applyFilters()">
               <mat-option value="">All Types</mat-option>
@@ -61,7 +61,7 @@
 
   <!-- Loading State -->
   <div *ngIf="loading" class="loading-section">
-    <mat-card class="loading-card">
+    <mat-card class="loading-card modern-card">
       <mat-card-content>
         <div class="loading-content">
           <mat-spinner diameter="40"></mat-spinner>
@@ -73,7 +73,7 @@
 
   <!-- Error State -->
   <div *ngIf="errorMessage && !loading" class="error-section">
-    <mat-card class="error-card">
+    <mat-card class="error-card modern-card">
       <mat-card-content>
         <div class="error-content">
           <mat-icon class="error-icon">error</mat-icon>
@@ -90,7 +90,7 @@
 
   <!-- Empty State -->
   <div *ngIf="!loading && !errorMessage && filteredContainers.length === 0 && containers.length === 0" class="empty-section">
-    <mat-card class="empty-card">
+    <mat-card class="empty-card modern-card">
       <mat-card-content>
         <div class="empty-content">
           <mat-icon class="empty-icon">inbox</mat-icon>
@@ -107,7 +107,7 @@
 
   <!-- No Results State -->
   <div *ngIf="!loading && !errorMessage && filteredContainers.length === 0 && containers.length > 0" class="no-results-section">
-    <mat-card class="no-results-card">
+    <mat-card class="no-results-card modern-card">
       <mat-card-content>
         <div class="no-results-content">
           <mat-icon class="no-results-icon">search_off</mat-icon>
@@ -123,8 +123,8 @@
   <div *ngIf="!loading && !errorMessage && filteredContainers.length > 0" class="containers-section">
     <div class="containers-grid">
       <mat-card *ngFor="let container of filteredContainers; trackBy: trackByContainerId"
-                class="container-card"
-                [ngClass]="'status-' + container.status.toLowerCase()">
+                class="container-card modern-card"
+        [ngClass]="'status-' + (container.status || '').toString().toLowerCase()">
 
         <!-- Container Header -->
         <mat-card-header class="container-header">
@@ -134,7 +134,7 @@
           <mat-card-title>{{ container.name }}</mat-card-title>
           <mat-card-subtitle>{{ container.databaseType | titlecase }}</mat-card-subtitle>
           <div class="header-actions">
-            <mat-chip [ngClass]="'status-chip-' + container.status.toLowerCase()">
+            <mat-chip [ngClass]="'status-chip-' + (container.status || '').toString().toLowerCase()">
               <mat-icon matChipLeadingIcon>{{ getStatusIcon(container.status) }}</mat-icon>
               {{ container.status }}
             </mat-chip>
@@ -159,7 +159,7 @@
               <span class="detail-label">Created:</span>
               <span class="detail-value">{{ container.createdAt | date:'medium' }}</span>
             </div>
-            <div class="detail-row" *ngIf="container.configuration?.['memory']">
+            <div class="detail-row" *ngIf="container.configuration && container.configuration['memory']">
               <mat-icon class="detail-icon">memory</mat-icon>
               <span class="detail-label">Memory:</span>
               <span class="detail-value">{{ container.configuration['memory'] }}</span>
