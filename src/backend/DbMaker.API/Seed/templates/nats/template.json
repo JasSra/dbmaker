@@ -1,0 +1,8 @@
+{
+  "DisplayName": "NATS",
+  "Category": "Messaging",
+  "Icon": "/template-icons/nats.svg",
+  "Description": "High-performance messaging",
+  "IsEnabled": true,
+  "LatestVersion": "2.10"
+}

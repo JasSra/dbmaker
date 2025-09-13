@@ -1,0 +1,8 @@
+{
+  "DisplayName": "MariaDB",
+  "Category": "Database",
+  "Icon": "/template-icons/mariadb.svg",
+  "Description": "MySQL-compatible relational database",
+  "IsEnabled": true,
+  "LatestVersion": "11"
+}

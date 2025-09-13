@@ -1,0 +1,8 @@
+{
+  "DisplayName": "Valkey",
+  "Category": "Key-Value",
+  "Icon": "/template-icons/valkey.svg",
+  "Description": "Redis-compatible in-memory store",
+  "IsEnabled": true,
+  "LatestVersion": "7"
+}

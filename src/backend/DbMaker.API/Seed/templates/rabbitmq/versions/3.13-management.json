@@ -1,0 +1,19 @@
+{
+  "version": "3.13-management",
+  "dockerImage": "rabbitmq:3.13-management",
+  "connectionStringTemplate": "amqp://guest:guest@localhost:{HOST_PORT}",
+  "ports": [
+    { "containerPort": 5672, "protocol": "tcp" },
+    { "containerPort": 15672, "protocol": "tcp" }
+  ],
+  "volumes": [],
+  "defaultEnvironment": {},
+  "defaultConfiguration": {},
+  "healthcheck": {
+    "test": ["CMD-SHELL", "rabbitmq-diagnostics -q ping"],
+    "interval": "30s",
+    "timeout": "10s",
+    "retries": 3,
+    "startPeriod": "10s"
+  }
+}

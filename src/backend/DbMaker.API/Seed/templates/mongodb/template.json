@@ -1,0 +1,8 @@
+{
+  "DisplayName": "MongoDB",
+  "Category": "Database",
+  "Icon": "/template-icons/mongodb.svg",
+  "Description": "Document database",
+  "IsEnabled": true,
+  "LatestVersion": "7"
+}

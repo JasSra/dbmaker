@@ -1,0 +1,16 @@
+{
+  "version": "7",
+  "dockerImage": "valkey/valkey:7",
+  "connectionStringTemplate": "redis://localhost:{HOST_PORT}",
+  "ports": [{ "containerPort": 6379, "protocol": "tcp" }],
+  "volumes": [],
+  "defaultEnvironment": {},
+  "defaultConfiguration": {},
+  "healthcheck": {
+    "test": ["CMD", "valkey-cli", "ping"],
+    "interval": "30s",
+    "timeout": "10s",
+    "retries": 3,
+    "startPeriod": "5s"
+  }
+}

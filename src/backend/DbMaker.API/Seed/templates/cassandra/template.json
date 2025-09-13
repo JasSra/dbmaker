@@ -1,0 +1,8 @@
+{
+  "DisplayName": "Apache Cassandra",
+  "Category": "Database",
+  "Icon": "/template-icons/cassandra.svg",
+  "Description": "Distributed wide-column store",
+  "IsEnabled": true,
+  "LatestVersion": "4"
+}

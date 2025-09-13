@@ -1,0 +1,16 @@
+{
+  "version": "7-alpine",
+  "dockerImage": "redis:7-alpine",
+  "connectionStringTemplate": "redis://localhost:{HOST_PORT}",
+  "ports": [{ "containerPort": 6379, "protocol": "tcp" }],
+  "volumes": [],
+  "defaultEnvironment": {},
+  "defaultConfiguration": {},
+  "healthcheck": {
+    "test": ["CMD", "redis-cli", "ping"],
+    "interval": "30s",
+    "timeout": "10s",
+    "retries": 3,
+    "startPeriod": "5s"
+  }
+}

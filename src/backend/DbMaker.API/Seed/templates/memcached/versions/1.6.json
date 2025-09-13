@@ -1,0 +1,16 @@
+{
+  "version": "1.6",
+  "dockerImage": "memcached:1.6",
+  "connectionStringTemplate": "memcached://localhost:{HOST_PORT}",
+  "ports": [{ "containerPort": 11211, "protocol": "tcp" }],
+  "volumes": [],
+  "defaultEnvironment": {},
+  "defaultConfiguration": {},
+  "healthcheck": {
+    "test": ["CMD-SHELL", "echo stats | nc localhost 11211 || exit 1"],
+    "interval": "30s",
+    "timeout": "10s",
+    "retries": 3,
+    "startPeriod": "5s"
+  }
+}

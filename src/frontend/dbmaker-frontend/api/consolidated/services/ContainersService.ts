@@ -138,10 +138,30 @@ export class ContainersService {
      * @returns any OK
      * @throws ApiError
      */
-    public static getApiContainersDockerTest(): CancelablePromise<any> {
+    public static deleteApiContainersCleanupDemo(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/Containers/cleanup-demo',
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static getApiContainersDatabaseDebug(): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/Containers/docker-test',
+            url: '/api/Containers/database-debug',
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static postApiContainersEmergencyReset(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/Containers/emergency-reset',
         });
     }
 }

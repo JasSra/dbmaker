@@ -1,0 +1,20 @@
+{
+  "version": "2.15-pg16",
+  "dockerImage": "timescale/timescaledb:2.15.0-pg16",
+  "connectionStringTemplate": "postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@localhost:{HOST_PORT}/{POSTGRES_DB}",
+  "ports": [{ "containerPort": 5432, "protocol": "tcp" }],
+  "volumes": [{ "containerPath": "/var/lib/postgresql/data" }],
+  "defaultEnvironment": {
+    "POSTGRES_DB": "userdb",
+    "POSTGRES_USER": "dbuser",
+    "POSTGRES_PASSWORD": "secure_password_123"
+  },
+  "defaultConfiguration": {},
+  "healthcheck": {
+    "test": ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"],
+    "interval": "30s",
+    "timeout": "10s",
+    "retries": 3,
+    "startPeriod": "10s"
+  }
+}

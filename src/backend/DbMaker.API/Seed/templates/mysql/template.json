@@ -1,0 +1,8 @@
+{
+  "DisplayName": "MySQL",
+  "Category": "Database",
+  "Icon": "/template-icons/mysql.svg",
+  "Description": "Popular open-source relational database",
+  "IsEnabled": true,
+  "LatestVersion": "8.0"
+}

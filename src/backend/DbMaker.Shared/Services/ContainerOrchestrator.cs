@@ -1,6 +1,7 @@
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using DbMaker.Shared.Models;
+using DbMaker.Shared.Services.Templates;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Text;
@@ -13,15 +14,17 @@ public class ContainerOrchestrator : IContainerOrchestrator
 {
     private DockerClient? _dockerClient;
     private readonly ILogger<ContainerOrchestrator> _logger;
+    private readonly ITemplateResolver _templateResolver;
     private readonly ConcurrentDictionary<int, bool> _usedPorts = new();
     private readonly Dictionary<string, DatabaseTemplate> _templates;
     private int _currentPortStart = 10000;
     private bool _dockerConnectionTested = false;
     private readonly string _nginxConfigPath = @"c:\dev\DbMaker\nginx\conf.d\dynamic-upstreams.conf";
 
-    public ContainerOrchestrator(ILogger<ContainerOrchestrator> logger)
+    public ContainerOrchestrator(ILogger<ContainerOrchestrator> logger, ITemplateResolver templateResolver)
     {
         _logger = logger;
+        _templateResolver = templateResolver;
         _templates = InitializeTemplates();
         LoadExistingPortMappings();
     }
@@ -161,9 +164,31 @@ public class ContainerOrchestrator : IContainerOrchestrator
         int port = 0;
         try
         {
-            if (!_templates.TryGetValue(request.DatabaseType, out var template))
+            // Support optional version hints: "key@version" or "key:version"
+            string templateKey = request.DatabaseType;
+            string? templateVersion = null;
+            if (templateKey.Contains('@'))
             {
-                throw new ArgumentException($"Unknown database type: {request.DatabaseType}");
+                var parts = templateKey.Split('@', 2);
+                templateKey = parts[0];
+                templateVersion = parts[1];
+            }
+            else if (templateKey.Contains(':'))
+            {
+                var parts = templateKey.Split(':', 2);
+                templateKey = parts[0];
+                templateVersion = parts[1];
+            }
+
+            // Try resolve from template library first
+            DatabaseTemplate? template = await _templateResolver.ResolveAsync(templateKey, templateVersion);
+            if (template == null)
+            {
+                _logger.LogWarning("Template '{TemplateKey}'{Version} not found in library, falling back to built-in templates", templateKey, templateVersion != null ? $"@{templateVersion}" : string.Empty);
+                if (!_templates.TryGetValue(templateKey, out template))
+                {
+                    throw new ArgumentException($"Unknown database type: {request.DatabaseType}");
+                }
             }
 
             // Get Docker client and test connectivity
@@ -646,6 +671,24 @@ public class ContainerOrchestrator : IContainerOrchestrator
 
     private string GenerateConnectionString(DatabaseTemplate template, int port, Dictionary<string, string> environment, string subdomain)
     {
+        // Prefer explicit connection string template if provided by the template library
+        if (!string.IsNullOrWhiteSpace(template.ConnectionStringTemplate))
+        {
+            var cs = template.ConnectionStringTemplate!;
+            // Common placeholders
+            cs = cs.Replace("{HOST_PORT}", port.ToString())
+                   .Replace("{SUBDOMAIN}", subdomain)
+                   .Replace("{HOST}", $"{subdomain}.mydomain.com")
+                   .Replace("{HTTP_PORT}", "80");
+            // Replace environment keys e.g., {POSTGRES_USER}
+            foreach (var kv in environment)
+            {
+                cs = cs.Replace("{" + kv.Key + "}", kv.Value);
+            }
+            return cs;
+        }
+
+        // Fallback legacy patterns
         return template.Type switch
         {
             "redis" => $"redis://{subdomain}.mydomain.com:80",

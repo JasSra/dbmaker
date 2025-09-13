@@ -1,0 +1,8 @@
+{
+  "DisplayName": "Memcached",
+  "Category": "Cache",
+  "Icon": "/template-icons/memcached.svg",
+  "Description": "In-memory key-value store",
+  "IsEnabled": true,
+  "LatestVersion": "1.6"
+}

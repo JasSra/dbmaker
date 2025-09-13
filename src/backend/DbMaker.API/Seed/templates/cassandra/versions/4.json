@@ -1,0 +1,16 @@
+{
+  "version": "4",
+  "dockerImage": "cassandra:4",
+  "connectionStringTemplate": "cassandra://localhost:{HOST_PORT}",
+  "ports": [{ "containerPort": 9042, "protocol": "tcp" }],
+  "volumes": [{ "containerPath": "/var/lib/cassandra" }],
+  "defaultEnvironment": {},
+  "defaultConfiguration": {},
+  "healthcheck": {
+    "test": ["CMD-SHELL", "cqlsh -e 'DESCRIBE KEYSPACES'"],
+    "interval": "45s",
+    "timeout": "10s",
+    "retries": 5,
+    "startPeriod": "30s"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "version": "11",
+  "dockerImage": "mariadb:11",
+  "connectionStringTemplate": "mysql://{MARIADB_USER}:{MARIADB_PASSWORD}@localhost:{HOST_PORT}/{MARIADB_DATABASE}",
+  "ports": [{ "containerPort": 3306, "protocol": "tcp" }],
+  "volumes": [{ "containerPath": "/var/lib/mysql" }],
+  "defaultEnvironment": {
+    "MARIADB_DATABASE": "appdb",
+    "MARIADB_USER": "dbuser",
+    "MARIADB_PASSWORD": "secure_password_123",
+    "MARIADB_ROOT_PASSWORD": "root_password_123"
+  },
+  "defaultConfiguration": {},
+  "healthcheck": {
+    "test": ["CMD", "mysqladmin", "ping", "-h", "localhost"],
+    "interval": "30s",
+    "timeout": "10s",
+    "retries": 3,
+    "startPeriod": "10s"
+  }
+}

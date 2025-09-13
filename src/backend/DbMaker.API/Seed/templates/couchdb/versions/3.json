@@ -1,0 +1,19 @@
+{
+  "version": "3",
+  "dockerImage": "couchdb:3",
+  "connectionStringTemplate": "http://{COUCHDB_USER}:{COUCHDB_PASSWORD}@localhost:{HOST_PORT}",
+  "ports": [{ "containerPort": 5984, "protocol": "tcp" }],
+  "volumes": [{ "containerPath": "/opt/couchdb/data" }],
+  "defaultEnvironment": {
+    "COUCHDB_USER": "admin",
+    "COUCHDB_PASSWORD": "secure_password_123"
+  },
+  "defaultConfiguration": {},
+  "healthcheck": {
+    "test": ["CMD-SHELL", "wget -qO- http://localhost:5984/_up || exit 1"],
+    "interval": "30s",
+    "timeout": "10s",
+    "retries": 3,
+    "startPeriod": "10s"
+  }
+}

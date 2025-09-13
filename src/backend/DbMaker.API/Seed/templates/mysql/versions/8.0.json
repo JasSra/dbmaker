@@ -1,0 +1,21 @@
+{
+  "version": "8.0",
+  "dockerImage": "mysql:8.0",
+  "connectionStringTemplate": "mysql://{MYSQL_USER}:{MYSQL_PASSWORD}@localhost:{HOST_PORT}/{MYSQL_DATABASE}",
+  "ports": [{ "containerPort": 3306, "protocol": "tcp" }],
+  "volumes": [{ "containerPath": "/var/lib/mysql" }],
+  "defaultEnvironment": {
+    "MYSQL_DATABASE": "appdb",
+    "MYSQL_USER": "dbuser",
+    "MYSQL_PASSWORD": "secure_password_123",
+    "MYSQL_ROOT_PASSWORD": "root_password_123"
+  },
+  "defaultConfiguration": {},
+  "healthcheck": {
+    "test": ["CMD", "mysqladmin", "ping", "-h", "localhost"],
+    "interval": "30s",
+    "timeout": "10s",
+    "retries": 3,
+    "startPeriod": "10s"
+  }
+}

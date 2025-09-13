@@ -1,0 +1,16 @@
+{
+  "version": "2.10",
+  "dockerImage": "nats:2.10",
+  "connectionStringTemplate": "nats://localhost:{HOST_PORT}",
+  "ports": [{ "containerPort": 4222, "protocol": "tcp" }],
+  "volumes": [],
+  "defaultEnvironment": {},
+  "defaultConfiguration": {},
+  "healthcheck": {
+    "test": ["CMD-SHELL", "wget -qO- http://localhost:8222/ || exit 1"],
+    "interval": "30s",
+    "timeout": "10s",
+    "retries": 3,
+    "startPeriod": "5s"
+  }
+}

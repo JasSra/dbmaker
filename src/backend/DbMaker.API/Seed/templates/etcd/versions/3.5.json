@@ -1,0 +1,16 @@
+{
+  "version": "3.5",
+  "dockerImage": "quay.io/coreos/etcd:v3.5",
+  "connectionStringTemplate": "http://localhost:{HOST_PORT}",
+  "ports": [{ "containerPort": 2379, "protocol": "tcp" }],
+  "volumes": [],
+  "defaultEnvironment": {},
+  "defaultConfiguration": {},
+  "healthcheck": {
+    "test": ["CMD-SHELL", "wget -qO- http://localhost:2379/health || exit 1"],
+    "interval": "30s",
+    "timeout": "10s",
+    "retries": 3,
+    "startPeriod": "10s"
+  }
+}

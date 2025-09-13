@@ -1,0 +1,8 @@
+{
+  "DisplayName": "ArangoDB",
+  "Category": "Database",
+  "Icon": "/template-icons/arangodb.svg",
+  "Description": "Multi-model database",
+  "IsEnabled": true,
+  "LatestVersion": "3.11"
+}

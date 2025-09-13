@@ -1,6 +1,7 @@
 using DbMaker.Workers;
 using DbMaker.Shared.Data;
 using DbMaker.Shared.Services;
+using DbMaker.Shared.Services.Templates;
 using Microsoft.EntityFrameworkCore;
 
 var builder = Host.CreateApplicationBuilder(args);
@@ -11,6 +12,8 @@ builder.Services.AddDbContext<DbMakerDbContext>(options =>
 
 // Add services
 builder.Services.AddScoped<IContainerOrchestrator, ContainerOrchestrator>();
+builder.Services.AddScoped<ITemplateRepository, EfTemplateRepository>();
+builder.Services.AddScoped<ITemplateResolver, EfTemplateResolver>();
 
 // Add workers
 builder.Services.AddHostedService<ContainerMonitoringWorker>();

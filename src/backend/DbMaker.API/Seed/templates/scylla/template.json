@@ -1,0 +1,8 @@
+{
+  "DisplayName": "ScyllaDB",
+  "Category": "Database",
+  "Icon": "/template-icons/scylla.svg",
+  "Description": "Cassandra-compatible NoSQL",
+  "IsEnabled": true,
+  "LatestVersion": "5"
+}

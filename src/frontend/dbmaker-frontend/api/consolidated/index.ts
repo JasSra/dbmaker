@@ -25,6 +25,7 @@ export type { SettingsResponse } from './models/SettingsResponse';
 export type { SetupStatus } from './models/SetupStatus';
 export type { SystemSettings } from './models/SystemSettings';
 export type { TestCreateContainerRequest } from './models/TestCreateContainerRequest';
+export type { TokenValidationRequest } from './models/TokenValidationRequest';
 export type { UISettings } from './models/UISettings';
 export type { UpdateSettingsRequest } from './models/UpdateSettingsRequest';
 export type { User } from './models/User';

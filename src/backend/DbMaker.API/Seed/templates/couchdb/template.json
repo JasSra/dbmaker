@@ -1,0 +1,8 @@
+{
+  "DisplayName": "CouchDB",
+  "Category": "Database",
+  "Icon": "/template-icons/couchdb.svg",
+  "Description": "Apache CouchDB document store",
+  "IsEnabled": true,
+  "LatestVersion": "3"
+}

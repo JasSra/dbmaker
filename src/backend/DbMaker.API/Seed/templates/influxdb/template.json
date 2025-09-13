@@ -1,0 +1,8 @@
+{
+  "DisplayName": "InfluxDB",
+  "Category": "Database",
+  "Icon": "/template-icons/influxdb.svg",
+  "Description": "Time-series database",
+  "IsEnabled": true,
+  "LatestVersion": "2"
+}

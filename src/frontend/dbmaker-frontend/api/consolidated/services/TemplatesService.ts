@@ -7,28 +7,80 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class TemplatesService {
     /**
+     * @param category
+     * @param q
      * @returns any OK
      * @throws ApiError
      */
-    public static getApiTemplates(): CancelablePromise<Array<any>> {
+    public static getApiTemplates(
+        category?: string,
+        q?: string,
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/Templates',
+            query: {
+                'category': category,
+                'q': q,
+            },
         });
     }
     /**
-     * @param type
+     * @param key
      * @returns any OK
      * @throws ApiError
      */
     public static getApiTemplates1(
-        type: string,
+        key: string,
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/Templates/{type}',
+            url: '/api/Templates/{key}',
             path: {
-                'type': type,
+                'key': key,
+            },
+        });
+    }
+    /**
+     * @param key
+     * @param version
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static getApiTemplatesVersions(
+        key: string,
+        version: string,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/Templates/{key}/versions/{version}',
+            path: {
+                'key': key,
+                'version': version,
+            },
+        });
+    }
+    /**
+     * @param key
+     * @param version
+     * @param overrides
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static getApiTemplatesPreview(
+        key: string,
+        version?: string,
+        overrides?: string,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/Templates/{key}/preview',
+            path: {
+                'key': key,
+            },
+            query: {
+                'version': version,
+                'overrides': overrides,
             },
         });
     }

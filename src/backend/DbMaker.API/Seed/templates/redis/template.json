@@ -1,0 +1,8 @@
+{
+  "DisplayName": "Redis",
+  "Category": "Cache",
+  "Icon": "/template-icons/redis.svg",
+  "Description": "In-memory data structure store",
+  "IsEnabled": true,
+  "LatestVersion": "7-alpine"
+}

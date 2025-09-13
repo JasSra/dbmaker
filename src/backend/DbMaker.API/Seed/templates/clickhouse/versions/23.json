@@ -1,0 +1,19 @@
+{
+  "version": "23",
+  "dockerImage": "clickhouse/clickhouse-server:23",
+  "connectionStringTemplate": "clickhouse://localhost:{HOST_PORT}",
+  "ports": [
+    { "containerPort": 8123, "protocol": "tcp" },
+    { "containerPort": 9000, "protocol": "tcp" }
+  ],
+  "volumes": [{ "containerPath": "/var/lib/clickhouse" }],
+  "defaultEnvironment": {},
+  "defaultConfiguration": {},
+  "healthcheck": {
+    "test": ["CMD-SHELL", "wget -qO- http://localhost:8123/ping || exit 1"],
+    "interval": "30s",
+    "timeout": "10s",
+    "retries": 3,
+    "startPeriod": "10s"
+  }
+}

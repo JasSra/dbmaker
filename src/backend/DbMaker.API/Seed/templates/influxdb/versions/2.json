@@ -1,0 +1,23 @@
+{
+  "version": "2",
+  "dockerImage": "influxdb:2",
+  "connectionStringTemplate": "http://localhost:{HOST_PORT}",
+  "ports": [{ "containerPort": 8086, "protocol": "tcp" }],
+  "volumes": [{ "containerPath": "/var/lib/influxdb2" }],
+  "defaultEnvironment": {
+    "DOCKER_INFLUXDB_INIT_MODE": "setup",
+    "DOCKER_INFLUXDB_INIT_USERNAME": "admin",
+    "DOCKER_INFLUXDB_INIT_PASSWORD": "secure_password_123",
+    "DOCKER_INFLUXDB_INIT_ORG": "example",
+    "DOCKER_INFLUXDB_INIT_BUCKET": "app",
+    "DOCKER_INFLUXDB_INIT_ADMIN_TOKEN": "devtoken"
+  },
+  "defaultConfiguration": {},
+  "healthcheck": {
+    "test": ["CMD", "influx", "ping"],
+    "interval": "30s",
+    "timeout": "10s",
+    "retries": 3,
+    "startPeriod": "15s"
+  }
+}

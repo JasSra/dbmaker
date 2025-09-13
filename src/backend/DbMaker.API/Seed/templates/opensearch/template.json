@@ -1,0 +1,8 @@
+{
+  "DisplayName": "OpenSearch",
+  "Category": "Search",
+  "Icon": "/template-icons/opensearch.svg",
+  "Description": "Search and analytics suite",
+  "IsEnabled": true,
+  "LatestVersion": "2.12"
+}

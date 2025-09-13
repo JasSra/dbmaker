@@ -1,0 +1,16 @@
+{
+  "version": "5",
+  "dockerImage": "scylladb/scylla:5",
+  "connectionStringTemplate": "cassandra://localhost:{HOST_PORT}",
+  "ports": [{ "containerPort": 9042, "protocol": "tcp" }],
+  "volumes": [{ "containerPath": "/var/lib/scylla" }],
+  "defaultEnvironment": {},
+  "defaultConfiguration": {},
+  "healthcheck": {
+    "test": ["CMD-SHELL", "cqlsh -e 'DESCRIBE KEYSPACES'"],
+    "interval": "45s",
+    "timeout": "10s",
+    "retries": 5,
+    "startPeriod": "30s"
+  }
+}

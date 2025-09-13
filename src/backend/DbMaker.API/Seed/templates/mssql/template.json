@@ -1,0 +1,8 @@
+{
+  "DisplayName": "SQL Server",
+  "Category": "Database",
+  "Icon": "/template-icons/mssql.svg",
+  "Description": "Microsoft SQL Server",
+  "IsEnabled": true,
+  "LatestVersion": "2022"
+}

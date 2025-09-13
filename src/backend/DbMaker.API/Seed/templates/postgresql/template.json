@@ -1,0 +1,8 @@
+{
+  "DisplayName": "PostgreSQL",
+  "Category": "Database",
+  "Icon": "/template-icons/postgresql.svg",
+  "Description": "Advanced open source relational database",
+  "IsEnabled": true,
+  "LatestVersion": "16-alpine"
+}

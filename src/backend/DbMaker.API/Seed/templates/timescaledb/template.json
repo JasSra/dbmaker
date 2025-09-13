@@ -1,0 +1,8 @@
+{
+  "DisplayName": "TimescaleDB",
+  "Category": "Database",
+  "Icon": "/template-icons/timescaledb.svg",
+  "Description": "PostgreSQL-based time-series DB",
+  "IsEnabled": true,
+  "LatestVersion": "2.15-pg16"
+}

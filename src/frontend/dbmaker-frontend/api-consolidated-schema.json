@@ -32,6 +32,38 @@
         }
       }
     },
+    "/api/AuthDebug/validate-token": {
+      "post": {
+        "tags": [
+          "AuthDebug"
+        ],
+        "summary": "Test custom token validation directly",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenValidationRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenValidationRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenValidationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/AuthDebug/status": {
       "get": {
         "tags": [
@@ -308,8 +340,32 @@
         }
       }
     },
-    "/api/Containers/docker-test": {
+    "/api/Containers/cleanup-demo": {
+      "delete": {
+        "tags": [
+          "Containers"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Containers/database-debug": {
       "get": {
+        "tags": [
+          "Containers"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Containers/emergency-reset": {
+      "post": {
         "tags": [
           "Containers"
         ],
@@ -877,43 +933,105 @@
         "tags": [
           "Templates"
         ],
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": { }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": { }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": { }
-                }
-              }
-            }
+            "description": "OK"
           }
         }
       }
     },
-    "/api/Templates/{type}": {
+    "/api/Templates/{key}": {
       "get": {
         "tags": [
           "Templates"
         ],
         "parameters": [
           {
-            "name": "type",
+            "name": "key",
             "in": "path",
             "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Templates/{key}/versions/{version}": {
+      "get": {
+        "tags": [
+          "Templates"
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Templates/{key}/preview": {
+      "get": {
+        "tags": [
+          "Templates"
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "overrides",
+            "in": "query",
             "schema": {
               "type": "string"
             }
@@ -1593,6 +1711,16 @@
             "additionalProperties": {
               "type": "string"
             },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "TokenValidationRequest": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
             "nullable": true
           }
         },

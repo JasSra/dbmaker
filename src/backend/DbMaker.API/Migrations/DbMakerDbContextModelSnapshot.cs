@@ -159,6 +159,107 @@ namespace DbMaker.API.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("DbMaker.Shared.Models.Template", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Category")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Icon")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LatestVersion")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("Templates");
+                });
+
+            modelBuilder.Entity("DbMaker.Shared.Models.TemplateVersion", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DefaultConfiguration")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DefaultEnvironment")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DockerImage")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Healthcheck")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Ports")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TemplateId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Version")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Volumes")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ConnectionStringTemplate")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TemplateId", "Version")
+                        .IsUnique();
+
+                    b.ToTable("TemplateVersions");
+                });
+
             modelBuilder.Entity("DbMaker.Shared.Models.DatabaseContainer", b =>
                 {
                     b.HasOne("DbMaker.Shared.Models.User", "User")
@@ -170,9 +271,25 @@ namespace DbMaker.API.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("DbMaker.Shared.Models.TemplateVersion", b =>
+                {
+                    b.HasOne("DbMaker.Shared.Models.Template", "Template")
+                        .WithMany("Versions")
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Template");
+                });
+
             modelBuilder.Entity("DbMaker.Shared.Models.User", b =>
                 {
                     b.Navigation("Containers");
+                });
+
+            modelBuilder.Entity("DbMaker.Shared.Models.Template", b =>
+                {
+                    b.Navigation("Versions");
                 });
 #pragma warning restore 612, 618
         }

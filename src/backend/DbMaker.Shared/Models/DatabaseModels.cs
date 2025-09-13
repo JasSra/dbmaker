@@ -52,6 +52,7 @@ public class DatabaseTemplate
     public Dictionary<string, object> DefaultConfiguration { get; set; } = new();
     public List<PortMapping> Ports { get; set; } = new();
     public List<VolumeMapping> Volumes { get; set; } = new();
+    public string? ConnectionStringTemplate { get; set; }
     public bool IsEnabled { get; set; } = true;
 }
 

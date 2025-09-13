@@ -1,0 +1,8 @@
+{
+  "DisplayName": "RabbitMQ",
+  "Category": "Messaging",
+  "Icon": "/template-icons/rabbitmq.svg",
+  "Description": "Message broker",
+  "IsEnabled": true,
+  "LatestVersion": "3.13-management"
+}

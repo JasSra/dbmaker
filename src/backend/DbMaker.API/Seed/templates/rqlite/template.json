@@ -1,0 +1,8 @@
+{
+  "DisplayName": "rqlite",
+  "Category": "Database",
+  "Icon": "/template-icons/rqlite.svg",
+  "Description": "Lightweight distributed relational DB",
+  "IsEnabled": true,
+  "LatestVersion": "8"
+}

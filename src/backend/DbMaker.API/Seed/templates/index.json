@@ -1,0 +1,22 @@
+[
+  { "Key": "postgresql" },
+  { "Key": "redis" },
+  { "Key": "mysql" },
+  { "Key": "mariadb" },
+  { "Key": "mongodb" },
+  { "Key": "mssql" },
+  { "Key": "cassandra" },
+  { "Key": "clickhouse" },
+  { "Key": "influxdb" },
+  { "Key": "couchdb" },
+  { "Key": "arangodb" },
+  { "Key": "etcd" },
+  { "Key": "valkey" },
+  { "Key": "memcached" },
+  { "Key": "timescaledb" },
+  { "Key": "opensearch" },
+  { "Key": "nats" },
+  { "Key": "rabbitmq" },
+  { "Key": "scylla" },
+  { "Key": "rqlite" }
+]

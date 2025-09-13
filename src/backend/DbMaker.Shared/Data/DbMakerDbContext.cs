@@ -12,6 +12,8 @@ public class DbMakerDbContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<DatabaseContainer> DatabaseContainers { get; set; }
     public DbSet<SystemSettings> SystemSettings { get; set; }
+    public DbSet<Template> Templates { get; set; }
+    public DbSet<TemplateVersion> TemplateVersions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -87,6 +89,63 @@ public class DbMakerDbContext : DbContext
                       v => System.Text.Json.JsonSerializer.Deserialize<ContainerSettings>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new ContainerSettings());
 
             entity.HasIndex(e => e.UserId);
+        });
+
+        // Template configuration
+        modelBuilder.Entity<Template>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Key).IsRequired().HasMaxLength(100);
+            entity.HasIndex(e => e.Key).IsUnique();
+            entity.Property(e => e.DisplayName).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Category).HasMaxLength(100);
+            entity.Property(e => e.Icon).HasMaxLength(200);
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            // Default handled via CLR default value
+            entity.Property(e => e.LatestVersion).HasMaxLength(100);
+
+            entity.HasMany(e => e.Versions)
+                  .WithOne(v => v.Template)
+                  .HasForeignKey(v => v.TemplateId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // TemplateVersion configuration
+        modelBuilder.Entity<TemplateVersion>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.TemplateId).IsRequired();
+            entity.Property(e => e.Version).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.DockerImage).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.ConnectionStringTemplate).HasMaxLength(1000);
+
+            // JSON serialize complex props
+            entity.Property(e => e.Ports)
+                  .HasConversion(
+                      v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                      v => System.Text.Json.JsonSerializer.Deserialize<List<PortMapping>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<PortMapping>());
+
+            entity.Property(e => e.Volumes)
+                  .HasConversion(
+                      v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                      v => System.Text.Json.JsonSerializer.Deserialize<List<VolumeMapping>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<VolumeMapping>());
+
+            entity.Property(e => e.DefaultEnvironment)
+                  .HasConversion(
+                      v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                      v => System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new Dictionary<string, string>());
+
+            entity.Property(e => e.DefaultConfiguration)
+                  .HasConversion(
+                      v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                      v => System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new Dictionary<string, string>());
+
+            entity.Property(e => e.Healthcheck)
+                  .HasConversion(
+                      v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                      v => System.Text.Json.JsonSerializer.Deserialize<HealthcheckSpec>(v, (System.Text.Json.JsonSerializerOptions?)null));
+
+            entity.HasIndex(e => new { e.TemplateId, e.Version }).IsUnique();
         });
     }
 }

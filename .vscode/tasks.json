@@ -89,6 +89,26 @@
 			"args": [],
 			"isBackground": true,
 			"group": "build"
+		},
+		{
+			"label": "build-backend (manual)",
+			"type": "shell",
+			"command": "dotnet build src/backend/DbMaker.sln -c Debug",
+			"isBackground": false,
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		},
+		{
+			"label": "build-backend (retry)",
+			"type": "shell",
+			"command": "dotnet build src/backend/DbMaker.sln -c Debug",
+			"isBackground": false,
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
 		}
 	]
 }

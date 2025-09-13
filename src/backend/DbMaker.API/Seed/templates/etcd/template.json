@@ -1,0 +1,8 @@
+{
+  "DisplayName": "etcd",
+  "Category": "Key-Value",
+  "Icon": "/template-icons/etcd.svg",
+  "Description": "Distributed key-value store",
+  "IsEnabled": true,
+  "LatestVersion": "3.5"
+}

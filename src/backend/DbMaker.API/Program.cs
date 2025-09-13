@@ -10,6 +10,8 @@ using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using DbMaker.Shared.Services.Templates;
+using DbMaker.API.Services;
 
 // Build configuration first to get Serilog settings
 var configuration = new ConfigurationBuilder()
@@ -192,13 +194,30 @@ try
             });
     });
 
-    // Add Entity Framework
+    // Add Entity Framework (ensure SQLite path is anchored to the API content root)
     builder.Services.AddDbContext<DbMakerDbContext>(options =>
-        options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"),
-            b => b.MigrationsAssembly("DbMaker.API")));
+    {
+        var rawCstr = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=dbmaker.db";
+        // If using a relative SQLite Data Source, anchor it to the content root to avoid cwd differences
+        if (rawCstr.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase))
+        {
+            var dataSource = rawCstr.Substring("Data Source=".Length).Trim();
+            // If it's not rooted, combine with content root
+            if (!Path.IsPathRooted(dataSource))
+            {
+                var anchoredPath = Path.Combine(builder.Environment.ContentRootPath, dataSource);
+                rawCstr = $"Data Source={anchoredPath}";
+            }
+        }
+
+        options.UseSqlite(rawCstr, b => b.MigrationsAssembly("DbMaker.API"));
+    });
 
     // Add custom services
     builder.Services.AddScoped<IContainerOrchestrator, ContainerOrchestrator>();
+    builder.Services.AddScoped<ITemplateRepository, EfTemplateRepository>();
+    builder.Services.AddScoped<ITemplateResolver, EfTemplateResolver>();
+    builder.Services.AddScoped<TemplateSeedService>();
 
     var app = builder.Build();
 
@@ -234,6 +253,8 @@ try
 
     // Disable HTTPS redirection for local development
     // app.UseHttpsRedirection();
+    // Serve static files (for template icons, etc.)
+    app.UseStaticFiles();
     app.UseCors("AllowAngularDev");
     
     // Add authentication debugging middleware
@@ -309,12 +330,34 @@ try
         }
     });
 
-    // Ensure database is created
+    // Ensure database is up to date (apply migrations)
     using (var scope = app.Services.CreateScope())
     {
         var context = scope.ServiceProvider.GetRequiredService<DbMakerDbContext>();
-        context.Database.EnsureCreated();
-        Log.Information("Database initialized successfully");
+        var pending = await context.Database.GetPendingMigrationsAsync();
+        if (pending.Any())
+        {
+            Log.Information("Applying {Count} pending migrations: {Migrations}", pending.Count(), string.Join(", ", pending));
+        }
+        else
+        {
+            Log.Information("No pending migrations");
+        }
+
+        context.Database.Migrate();
+        Log.Information("Database migrated/initialized successfully");
+
+        // Seed templates
+        try
+        {
+            var seeder = scope.ServiceProvider.GetRequiredService<TemplateSeedService>();
+            await seeder.SeedAsync();
+            Log.Information("Template library seeded");
+        }
+        catch (Exception seedEx)
+        {
+            Log.Error(seedEx, "Template seeding failed");
+        }
     }
 
     Log.Information("DbMaker API started successfully on {Environment}", app.Environment.EnvironmentName);

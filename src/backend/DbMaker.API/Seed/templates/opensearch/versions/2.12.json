@@ -1,0 +1,20 @@
+{
+  "version": "2.12",
+  "dockerImage": "opensearchproject/opensearch:2.12.0",
+  "connectionStringTemplate": "http://localhost:{HOST_PORT}",
+  "ports": [{ "containerPort": 9200, "protocol": "tcp" }],
+  "volumes": [],
+  "defaultEnvironment": {
+    "discovery.type": "single-node",
+    "plugins.security.disabled": "true",
+    "OPENSEARCH_JAVA_OPTS": "-Xms512m -Xmx512m"
+  },
+  "defaultConfiguration": {},
+  "healthcheck": {
+    "test": ["CMD-SHELL", "wget -qO- http://localhost:9200 || exit 1"],
+    "interval": "30s",
+    "timeout": "10s",
+    "retries": 3,
+    "startPeriod": "20s"
+  }
+}

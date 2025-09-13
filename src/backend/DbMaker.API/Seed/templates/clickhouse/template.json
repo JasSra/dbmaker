@@ -1,0 +1,8 @@
+{
+  "DisplayName": "ClickHouse",
+  "Category": "Database",
+  "Icon": "/template-icons/clickhouse.svg",
+  "Description": "Column-oriented OLAP database",
+  "IsEnabled": true,
+  "LatestVersion": "23"
+}
